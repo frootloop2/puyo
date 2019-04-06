@@ -1,0 +1,5 @@
+language: dart
+
+dart_task:
+  - dartanalyzer: true
+  - dartfmt: true
