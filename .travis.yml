@@ -1,5 +1,7 @@
 language: dart
 
+script: pub run build_runner build
+
 dart_task:
   - dartanalyzer: true
   - dartfmt: true
