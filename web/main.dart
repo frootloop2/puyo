@@ -67,8 +67,7 @@ void _drawState(CanvasRenderingContext2D renderer, State state) {
 
   for (int columnIndex = 0; columnIndex < columnCount; columnIndex++) {
     for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      if (state.field.cellsByRowByColumn[columnIndex][rowIndex].value ==
-          Value.empty) {
+      if (state.field.cellsByRowByColumn[columnIndex][rowIndex].isEmpty) {
         continue;
       }
       _drawPuyo(
@@ -99,31 +98,31 @@ void _drawState(CanvasRenderingContext2D renderer, State state) {
           .currentPiece.colors[state.currentPiece.colorProcessingOrder.last]]);
 
   // ghost
-  if (state.field.indexOfLowestEmptyRowInColumn(
-              state.currentPiece.columnIndexes.first) !=
-          -1 &&
-      state.field.indexOfLowestEmptyRowInColumn(
-              state.currentPiece.columnIndexes.last) !=
-          -1 &&
+  if (!isColumnFull(state.field, state.currentPiece.columnIndexes.first) &&
+      !isColumnFull(state.field, state.currentPiece.columnIndexes.last) &&
       (state.currentPiece.columnIndexes.first !=
               state.currentPiece.columnIndexes.last ||
-          state.field.indexOfLowestEmptyRowInColumn(
-                  state.currentPiece.columnIndexes.first) !=
+          indexOfLowestEmptyRowInColumn(
+                  state.field, state.currentPiece.columnIndexes.first) !=
               state.field.rowCount - 1)) {
     _drawPuyo(
         renderer,
         state.currentPiece
             .columnIndexes[state.currentPiece.colorProcessingOrder.first],
-        state.field.indexOfLowestEmptyRowInColumn(state.currentPiece
-            .columnIndexes[state.currentPiece.colorProcessingOrder.first]),
+        indexOfLowestEmptyRowInColumn(
+            state.field,
+            state.currentPiece
+                .columnIndexes[state.currentPiece.colorProcessingOrder.first]),
         ghostColors[state.currentPiece
             .colors[state.currentPiece.colorProcessingOrder.first]]);
     _drawPuyo(
         renderer,
         state.currentPiece
             .columnIndexes[state.currentPiece.colorProcessingOrder.last],
-        state.field.indexOfLowestEmptyRowInColumn(state.currentPiece
-                .columnIndexes[state.currentPiece.colorProcessingOrder.last]) +
+        indexOfLowestEmptyRowInColumn(
+                state.field,
+                state.currentPiece.columnIndexes[
+                    state.currentPiece.colorProcessingOrder.last]) +
             (state.currentPiece.columnIndexes.first ==
                     state.currentPiece.columnIndexes.last
                 ? 1

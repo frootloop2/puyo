@@ -17,14 +17,14 @@ abstract class PieceQueue implements Built<PieceQueue, PieceQueueBuilder> {
 }
 
 final PieceQueue startingQueue = PieceQueue((b) => b
-  ..next = generateColorPair().toBuilder()
-  ..nextNext = generateColorPair().toBuilder());
+  ..next = _generateColorPair().toBuilder()
+  ..nextNext = _generateColorPair().toBuilder());
 
 PieceQueue advanceQueue(PieceQueue queue) => queue.rebuild((b) => b
   ..next = b.nextNext
-  ..nextNext = generateColorPair().toBuilder());
+  ..nextNext = _generateColorPair().toBuilder());
 
-BuiltList<Color> generateColorPair() => BuiltList([
+BuiltList<Color> _generateColorPair() => BuiltList([
       Color.values[Random().nextInt(Color.values.length)],
       Color.values[Random().nextInt(Color.values.length)]
     ]);

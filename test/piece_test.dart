@@ -26,13 +26,13 @@ void main() {
     test('has getters', () {
       expect(rightPiece.colors, colors);
       expect(rightPiece.secondaryPuyoColumnIndex, 3);
-      expect(rightPiece.columnIndexes, BuiltList<int>([2, 3]));
-      expect(rightPiece.colorProcessingOrder, BuiltList<int>([0, 1]));
+      expect(rightPiece.columnIndexes, orderedEquals([2, 3]));
+      expect(rightPiece.colorProcessingOrder, orderedEquals([0, 1]));
     });
 
     test('processing order depends on direction', () {
-      expect(upPiece.colorProcessingOrder, BuiltList<int>([0, 1]));
-      expect(downPiece.colorProcessingOrder, BuiltList<int>([1, 0]));
+      expect(upPiece.colorProcessingOrder, orderedEquals([0, 1]));
+      expect(downPiece.colorProcessingOrder, orderedEquals([1, 0]));
       // Order does not matter for left or right orientations since the puyos
       // will not stack.
     });
@@ -43,7 +43,7 @@ void main() {
             movePieceRight(upPiece, upPiece.corePuyoColumnIndex + 2);
         expect(
             movedRightPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.columnIndexes.first + 1,
               upPiece.columnIndexes.last + 1
             ]));
@@ -73,10 +73,10 @@ void main() {
         final Piece movedLeftPiece = movePieceLeft(upPiece);
         expect(
             movedLeftPiece.columnIndexes,
-            equals(BuiltList<int>([
+            orderedEquals([
               upPiece.columnIndexes.first - 1,
               upPiece.columnIndexes.last - 1
-            ])));
+            ]));
       });
 
       test('wallkicks when moved off the field', () {
@@ -107,7 +107,7 @@ void main() {
         expect(rightPiece.orientation, Direction.right);
         expect(
             rightPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex + 1
             ]));
@@ -116,7 +116,7 @@ void main() {
         expect(downPiece.orientation, Direction.down);
         expect(
             downPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex
             ]));
@@ -125,7 +125,7 @@ void main() {
         expect(leftPiece.orientation, Direction.left);
         expect(
             leftPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex - 1
             ]));
@@ -157,7 +157,7 @@ void main() {
         expect(leftPiece.orientation, Direction.left);
         expect(
             leftPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex - 1
             ]));
@@ -167,7 +167,7 @@ void main() {
         expect(downPiece.orientation, Direction.down);
         expect(
             downPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex
             ]));
@@ -177,7 +177,7 @@ void main() {
         expect(rightPiece.orientation, Direction.right);
         expect(
             rightPiece.columnIndexes,
-            BuiltList<int>([
+            orderedEquals([
               upPiece.corePuyoColumnIndex,
               upPiece.secondaryPuyoColumnIndex + 1
             ]));
