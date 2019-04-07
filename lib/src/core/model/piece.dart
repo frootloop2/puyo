@@ -93,9 +93,9 @@ Piece newPiece(BuiltList<Color> colors) => Piece((b) => b
   ..corePuyoColumnIndex = 2
   ..orientation = Direction.up);
 
-void printPiece(Piece piece) {
-  print(
-      'color: ${characterByColor[piece.corePuyoColor]}, column: ${piece.corePuyoColumnIndex}'
-      'color: ${characterByColor[piece.secondaryPuyoColor]}, column: ${piece.secondaryPuyoColumnIndex}'
-      'orientation: ${characterByDirection[piece.orientation]}');
-}
+String pieceString(Piece piece) =>
+    'color: ${characterByColor[piece.corePuyoColor]}, '
+        'column: ${piece.corePuyoColumnIndex}\n'
+        'color: ${characterByColor[piece.secondaryPuyoColor]}, '
+        'column: ${piece.secondaryPuyoColumnIndex}\n'
+        'orientation: ${characterByDirection[piece.orientation]}';
