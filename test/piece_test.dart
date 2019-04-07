@@ -7,18 +7,17 @@ void main() {
   group('default red-blue piece', () {
     final BuiltList<Color> colors = BuiltList([Color.red, Color.blue]);
 
-    final Piece upPiece = Piece((b) =>
-    b
+    final Piece upPiece = Piece((b) => b
       ..corePuyoColor = colors.first
       ..secondaryPuyoColor = colors.last
       ..corePuyoColumnIndex = 2
       ..orientation = Direction.up);
     final Piece rightPiece =
-    upPiece.rebuild((b) => b.orientation = Direction.right);
+        upPiece.rebuild((b) => b.orientation = Direction.right);
     final Piece downPiece =
-    upPiece.rebuild((b) => b.orientation = Direction.down);
+        upPiece.rebuild((b) => b.orientation = Direction.down);
     final Piece leftPiece =
-    upPiece.rebuild((b) => b.orientation = Direction.left);
+        upPiece.rebuild((b) => b.orientation = Direction.left);
 
     test('new piece is pointed up in column 2', () {
       expect(newPiece(colors), upPiece);
@@ -41,7 +40,7 @@ void main() {
     group('moves right', () {
       test('changes columns when there is room', () {
         final Piece movedRightPiece =
-        movePieceRight(upPiece, upPiece.corePuyoColumnIndex + 2);
+            movePieceRight(upPiece, upPiece.corePuyoColumnIndex + 2);
         expect(
             movedRightPiece.columnIndexes,
             BuiltList<int>([
@@ -82,20 +81,20 @@ void main() {
 
       test('wallkicks when moved off the field', () {
         final Piece upPieceAtLeftWall =
-        upPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
+            upPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
         expect(movePieceLeft(upPieceAtLeftWall), upPieceAtLeftWall);
 
         final Piece rightPieceAtLeftWall =
-        rightPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
+            rightPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
         expect(movePieceLeft(rightPieceAtLeftWall), rightPieceAtLeftWall);
 
         final Piece downPieceAtLeftWall =
-        downPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
+            downPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
         expect(movePieceLeft(downPieceAtLeftWall), downPieceAtLeftWall);
 
         // secondary puyo is leftmost
         final Piece leftPieceAtLeftWall =
-        leftPiece.rebuild((b) => b..corePuyoColumnIndex = 1);
+            leftPiece.rebuild((b) => b..corePuyoColumnIndex = 1);
         expect(movePieceLeft(leftPieceAtLeftWall), leftPieceAtLeftWall);
       });
     });
@@ -136,13 +135,13 @@ void main() {
 
       test('wallkicks when rotated off the field', () {
         final Piece upPieceRotatedClockwiseAtRightWall =
-        rotatePieceClockwise(upPiece, upPiece.corePuyoColumnIndex + 1);
+            rotatePieceClockwise(upPiece, upPiece.corePuyoColumnIndex + 1);
         expect(upPieceRotatedClockwiseAtRightWall.orientation, Direction.right);
         expect(upPieceRotatedClockwiseAtRightWall.corePuyoColumnIndex,
             upPiece.corePuyoColumnIndex - 1);
 
         final Piece downPieceAtLeftWall =
-        downPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
+            downPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
         final Piece downPieceRotatedClockwiseAtLeftWall = rotatePieceClockwise(
             downPieceAtLeftWall, downPieceAtLeftWall.corePuyoColumnIndex + 1);
         expect(downPieceRotatedClockwiseAtLeftWall.orientation, Direction.left);
@@ -164,7 +163,7 @@ void main() {
             ]));
 
         final Piece downPiece =
-        rotatePieceCounterClockwise(leftPiece, fieldSize);
+            rotatePieceCounterClockwise(leftPiece, fieldSize);
         expect(downPiece.orientation, Direction.down);
         expect(
             downPiece.columnIndexes,
@@ -174,7 +173,7 @@ void main() {
             ]));
 
         final Piece rightPiece =
-        rotatePieceCounterClockwise(downPiece, fieldSize);
+            rotatePieceCounterClockwise(downPiece, fieldSize);
         expect(rightPiece.orientation, Direction.right);
         expect(
             rightPiece.columnIndexes,
@@ -188,18 +187,18 @@ void main() {
 
       test('wallkicks when rotated off the field', () {
         final Piece downPieceRotatedCounterClockwiseAtRightWall =
-        rotatePieceCounterClockwise(
-            downPiece, downPiece.corePuyoColumnIndex + 1);
+            rotatePieceCounterClockwise(
+                downPiece, downPiece.corePuyoColumnIndex + 1);
         expect(downPieceRotatedCounterClockwiseAtRightWall.orientation,
             Direction.right);
         expect(downPieceRotatedCounterClockwiseAtRightWall.corePuyoColumnIndex,
             downPiece.corePuyoColumnIndex - 1);
 
         final Piece upPieceAtLeftWall =
-        upPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
+            upPiece.rebuild((b) => b..corePuyoColumnIndex = 0);
         final Piece upPieceRotatedCounterClockwiseAtLeftWall =
-        rotatePieceCounterClockwise(
-            upPieceAtLeftWall, upPieceAtLeftWall.corePuyoColumnIndex + 1);
+            rotatePieceCounterClockwise(
+                upPieceAtLeftWall, upPieceAtLeftWall.corePuyoColumnIndex + 1);
         expect(upPieceRotatedCounterClockwiseAtLeftWall.orientation,
             Direction.left);
         expect(upPieceRotatedCounterClockwiseAtLeftWall.corePuyoColumnIndex,
