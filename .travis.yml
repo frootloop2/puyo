@@ -1,13 +1,12 @@
 language: dart
 before_install:
-- openssl aes-256-cbc -K $encrypted_aace0a50980c_key -iv $encrypted_aace0a50980c_iv -in ./keys/service-account-key.json.enc -out ./keys/service-account-key.json -d
+  - openssl aes-256-cbc -K $encrypted_aace0a50980c_key -iv $encrypted_aace0a50980c_iv -in ./keys/service-account-key.json.enc -out ./keys/service-account-key.json -d
 script:
-  - pub run build_runner build
   - pub global activate webdev
-  - webdev build --no-build-web-compilers
-  - pub run build_runner test
-  - dartfmt -n --set-exit-if-changed .
+  - webdev build
   - dartanalyzer --fatal-infos --fatal-warnings .
+  - dartfmt -n --set-exit-if-changed .
+  - pub run test
 deploy:
   provider: gae
   keyfile: "./keys/service-account-key.json"
