@@ -56,27 +56,36 @@ abstract class Field implements Built<Field, FieldBuilder> {
 
   int get rowCount => cellsByRowByColumn.first.length;
 
-  int indexOfLowestEmptyRowInColumn(int columnIndex) =>
-      cellsByRowByColumn[columnIndex]
-          .indexWhere((cell) => cell.value == Value.empty);
-
   Field._();
 
   factory Field([updates(FieldBuilder b)]) = _$Field;
 }
+
+/// -1 if column is full, check isColumnFull first
+int indexOfLowestEmptyRowInColumn(Field field, int columnIndex) =>
+    field.cellsByRowByColumn[columnIndex].indexWhere((cell) => cell.isEmpty);
+
+bool isColumnFull(Field field, int columnIndex) =>
+    indexOfLowestEmptyRowInColumn(field, columnIndex) == -1;
+
+int dropTarget(Field field, int columnIndex) => isColumnFull(field, columnIndex)
+    ? -1
+    : field.cellsByRowByColumn[columnIndex]
+            .lastIndexWhere((cell) => cell.isNotEmpty) +
+        1;
 
 BuiltSet<Cell> neighbors(Field field, Cell cell) {
   SetBuilder<Cell> builder = SetBuilder();
   if (cell.columnIndex > 0) {
     builder.add(field.cellsByRowByColumn[cell.columnIndex - 1][cell.rowIndex]);
   }
-  if (cell.columnIndex < 5) {
+  if (cell.columnIndex < field.columnCount - 1) {
     builder.add(field.cellsByRowByColumn[cell.columnIndex + 1][cell.rowIndex]);
   }
   if (cell.rowIndex > 0) {
     builder.add(field.cellsByRowByColumn[cell.columnIndex][cell.rowIndex - 1]);
   }
-  if (cell.rowIndex < 11) {
+  if (cell.rowIndex < field.rowCount - 1) {
     builder.add(field.cellsByRowByColumn[cell.columnIndex][cell.rowIndex + 1]);
   }
   return builder.build();
@@ -92,29 +101,21 @@ final Field emptyField =
               ..columnIndex = columnIndex
               ..rowIndex = rowIndex))))));
 
-void printField(Field field) {
-  for (int rowIndex = field.rowCount - 1; rowIndex >= 0; rowIndex--) {
-    print(field.cellsByRowByColumn
-        .map((column) => characterByValue[column[rowIndex].value])
-        .join());
-  }
-}
-
 // returns original field if can't be dropped because column is full
 Field dropPiece(Field field, final Piece piece) {
-  if (piece.columnIndexes.any((columnIndex) =>
-      field.indexOfLowestEmptyRowInColumn(columnIndex) == -1)) {
+  if (piece.columnIndexes
+      .any((columnIndex) => isColumnFull(field, columnIndex))) {
     return field;
   }
   if (piece.columnIndexes.first == piece.columnIndexes.last &&
-      field.indexOfLowestEmptyRowInColumn(piece.columnIndexes.first) ==
+      indexOfLowestEmptyRowInColumn(field, piece.columnIndexes.first) ==
           field.rowCount - 1) {
     return field;
   }
   piece.colorProcessingOrder.forEach((colorIndex) {
     final Color color = piece.colors[colorIndex];
     final int columnIndex = piece.columnIndexes[colorIndex];
-    final int rowIndex = field.indexOfLowestEmptyRowInColumn(columnIndex);
+    final int rowIndex = dropTarget(field, columnIndex);
     field = field.rebuild((b) => b.cellsByRowByColumn[columnIndex] =
         b.cellsByRowByColumn[columnIndex].rebuild((b) => b[rowIndex] =
             b[rowIndex].rebuild((b) => b.value = valueByColor[color])));
@@ -136,18 +137,18 @@ Field fall(Field field) {
   final ListBuilder<BuiltList<Cell>> newCells =
       field.cellsByRowByColumn.toBuilder();
   for (int columnIndex = 0; columnIndex < field.columnCount; columnIndex++) {
-    int lowestEmptyRowInColumn =
-        field.indexOfLowestEmptyRowInColumn(columnIndex);
-    if (lowestEmptyRowInColumn == -1) {
+    if (isColumnFull(field, columnIndex)) {
       continue;
     }
+    int lowestEmptyRowInColumn =
+        indexOfLowestEmptyRowInColumn(field, columnIndex);
     for (int rowIndex = lowestEmptyRowInColumn + 1;
         rowIndex < field.rowCount;
         rowIndex++) {
-      final Value value = field.cellsByRowByColumn[columnIndex][rowIndex].value;
-      if (value == Value.empty) {
+      if (field.cellsByRowByColumn[columnIndex][rowIndex].isEmpty) {
         continue;
       }
+      final Value value = field.cellsByRowByColumn[columnIndex][rowIndex].value;
 
       // set destination
       newCells[columnIndex] = newCells[columnIndex].rebuild((b) =>
@@ -161,4 +162,17 @@ Field fall(Field field) {
     }
   }
   return field.rebuild((b) => b.cellsByRowByColumn = newCells);
+}
+
+// top to bottom, left to right
+String fieldString(Field field) {
+  String s = '';
+  for (int rowIndex = field.rowCount - 1; rowIndex >= 0; rowIndex--) {
+    s = s +
+        field.cellsByRowByColumn
+            .map((column) => characterByValue[column[rowIndex].value])
+            .join() +
+        (rowIndex == 0 ? '' : '\n');
+  }
+  return s;
 }

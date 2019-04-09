@@ -11,13 +11,6 @@ enum Direction {
   left,
 }
 
-const List<Direction> clockwiseRotationOrder = [
-  Direction.up,
-  Direction.right,
-  Direction.down,
-  Direction.left,
-];
-
 const Map<Color, String> characterByColor = {
   Color.red: 'R',
   Color.green: 'G',

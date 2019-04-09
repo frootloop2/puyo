@@ -62,5 +62,5 @@ State allChains(State state) {
 }
 
 void printState(State state) {
-  printPiece(state.currentPiece);
+  print(pieceString(state.currentPiece));
 }
