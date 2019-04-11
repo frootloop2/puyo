@@ -6,6 +6,8 @@ import 'package:puyo/src/core/model/common.dart';
 
 part 'piece_queue.g.dart';
 
+// TODO: rethink randomness
+
 abstract class PieceQueue implements Built<PieceQueue, PieceQueueBuilder> {
   BuiltList<Color> get next;
 
@@ -28,3 +30,18 @@ BuiltList<Color> _generateColorPair() => BuiltList([
       Color.values[Random().nextInt(Color.values.length)],
       Color.values[Random().nextInt(Color.values.length)]
     ]);
+
+String pieceQueueString(PieceQueue pieceQueue) =>
+    (List.of(pieceQueue.next)..addAll(pieceQueue.nextNext))
+        .map((color) => characterByColor[color])
+        .join();
+
+PieceQueue pieceQueueFromString(String pieceQueueString) => PieceQueue((b) => b
+  ..next = ListBuilder<Color>(pieceQueueString
+      .substring(0, 2)
+      .split('')
+      .map((colorString) => colorByCharacter[colorString]))
+  ..nextNext = ListBuilder<Color>(pieceQueueString
+      .substring(2, 4)
+      .split('')
+      .map((colorString) => colorByCharacter[colorString])));

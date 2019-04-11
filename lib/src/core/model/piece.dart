@@ -6,7 +6,7 @@ import 'package:puyo/src/core/model/common.dart';
 
 part 'piece.g.dart';
 
-BuiltList<Direction> clockwiseRotationOrder =
+final BuiltList<Direction> _clockwiseRotationOrder =
     BuiltList([Direction.up, Direction.right, Direction.down, Direction.left]);
 
 abstract class Piece implements Built<Piece, PieceBuilder> {
@@ -55,9 +55,9 @@ Piece movePieceLeft(Piece piece) =>
 
 Piece rotatePieceClockwise(Piece piece, int columnCount) {
   PieceBuilder builder = piece.toBuilder();
-  builder.orientation = clockwiseRotationOrder[
-      (clockwiseRotationOrder.indexOf(piece.orientation) + 1) %
-          clockwiseRotationOrder.length];
+  builder.orientation = _clockwiseRotationOrder[
+      (_clockwiseRotationOrder.indexOf(piece.orientation) + 1) %
+          _clockwiseRotationOrder.length];
 
   // wallkicks
   if (builder.orientation == Direction.left) {
@@ -72,9 +72,9 @@ Piece rotatePieceClockwise(Piece piece, int columnCount) {
 
 Piece rotatePieceCounterClockwise(Piece piece, int columnCount) {
   PieceBuilder builder = piece.toBuilder();
-  builder.orientation = clockwiseRotationOrder[
-      (clockwiseRotationOrder.indexOf(piece.orientation) - 1) %
-          clockwiseRotationOrder.length];
+  builder.orientation = _clockwiseRotationOrder[
+      (_clockwiseRotationOrder.indexOf(piece.orientation) - 1) %
+          _clockwiseRotationOrder.length];
 
   // wallkicks
   if (builder.orientation == Direction.left) {
@@ -94,8 +94,13 @@ Piece newPiece(BuiltList<Color> colors) => Piece((b) => b
   ..orientation = Direction.up);
 
 String pieceString(Piece piece) =>
-    'color: ${characterByColor[piece.corePuyoColor]}, '
-    'column: ${piece.corePuyoColumnIndex}\n'
-    'color: ${characterByColor[piece.secondaryPuyoColor]}, '
-    'column: ${piece.secondaryPuyoColumnIndex}\n'
-    'orientation: ${characterByDirection[piece.orientation]}';
+    '${characterByColor[piece.corePuyoColor]}'
+    '${characterByColor[piece.secondaryPuyoColor]}'
+    '${piece.corePuyoColumnIndex}'
+    '${characterByDirection[piece.orientation]}';
+
+Piece pieceFromString(String pieceString) => Piece((b) => b
+  ..corePuyoColor = colorByCharacter[pieceString.substring(0, 1)]
+  ..secondaryPuyoColor = colorByCharacter[pieceString.substring(1, 2)]
+  ..corePuyoColumnIndex = int.parse(pieceString.substring(2, 3))
+  ..orientation = directionByCharacter[pieceString.substring(3, 4)]);

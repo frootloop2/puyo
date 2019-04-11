@@ -16,6 +16,14 @@ const Map<Value, String> characterByValue = {
   Value.yellow: 'Y',
 };
 
+const Map<String, Value> valueByCharacter = {
+  'E': Value.empty,
+  'R': Value.red,
+  'G': Value.green,
+  'B': Value.blue,
+  'Y': Value.yellow,
+};
+
 const Map<Color, Value> valueByColor = {
   Color.red: Value.red,
   Color.green: Value.green,
@@ -175,4 +183,33 @@ String fieldString(Field field) {
         (rowIndex == 0 ? '' : '\n');
   }
   return s;
+}
+
+Field fieldFromString(String fieldString) {
+  List<List<Value>> valuesByColumnByRow = fieldString
+      // split string into rows
+      .split('\n')
+      // fieldString format has top row first for print purposes, but we want
+      // top row last for index purposes so we need to reverse it.
+      .reversed
+      .map((rowString) => rowString
+          // split row into cells
+          .split('')
+          // convert cell string into Value
+          .map((valueString) => valueByCharacter[valueString])
+          .toList())
+      .toList();
+  int rowCount = valuesByColumnByRow.length;
+  int columnCount = rowCount == 0 ? 0 : valuesByColumnByRow.first.length;
+
+  // TODO (ensure each row is the same length).
+
+  return Field((b) => b.cellsByRowByColumn = ListBuilder(List.generate(
+      columnCount,
+      (columnIndex) => BuiltList<Cell>(List<Cell>.generate(
+          rowCount,
+          (rowIndex) => Cell((b) => b
+            ..value = valuesByColumnByRow[rowIndex][columnIndex]
+            ..columnIndex = columnIndex
+            ..rowIndex = rowIndex))))));
 }

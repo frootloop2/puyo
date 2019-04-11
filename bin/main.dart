@@ -10,5 +10,5 @@ main(List<String> arguments) {
   state = drop(state);
   state = drop(state);
   state = allChains(state);
-  printState(state);
+  print(stateStrings(state));
 }

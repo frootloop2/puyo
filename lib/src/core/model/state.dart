@@ -61,6 +61,13 @@ State allChains(State state) {
   return nextState;
 }
 
-void printState(State state) {
-  print(pieceString(state.currentPiece));
-}
+List<String> stateStrings(State state) => [
+      fieldString(state.field),
+      pieceString(state.currentPiece),
+      pieceQueueString(state.pieceQueue)
+    ];
+
+State stateFromStrings(List<String> stateStrings) => State((b) => b
+  ..field = fieldFromString(stateStrings[0]).toBuilder()
+  ..currentPiece = pieceFromString(stateStrings[1]).toBuilder()
+  ..pieceQueue = pieceQueueFromString(stateStrings[2]).toBuilder());
