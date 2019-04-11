@@ -99,10 +99,10 @@ void main() {
       final Piece downPiece = pieceFromString('RG2D');
       final Piece leftPiece = pieceFromString('RG2L');
 
-      expect(rotatePieceCounterClockwise(leftPiece, 4), downPiece);
-      expect(rotatePieceCounterClockwise(downPiece, 4), rightPiece);
-      expect(rotatePieceCounterClockwise(rightPiece, 4), upPiece);
-      expect(rotatePieceCounterClockwise(upPiece, 4), leftPiece);
+      expect(rotatePieceCounterclockwise(leftPiece, 4), downPiece);
+      expect(rotatePieceCounterclockwise(downPiece, 4), rightPiece);
+      expect(rotatePieceCounterclockwise(rightPiece, 4), upPiece);
+      expect(rotatePieceCounterclockwise(upPiece, 4), leftPiece);
     });
 
     test('wallkicks when rotated off the field', () {
@@ -111,8 +111,8 @@ void main() {
       final Piece expectedRightPiece = pieceFromString('RG1R');
       final Piece expectedLeftPiece = pieceFromString('RG1L');
 
-      expect(rotatePieceCounterClockwise(downPiece, 3), expectedRightPiece);
-      expect(rotatePieceCounterClockwise(upPiece, 3), expectedLeftPiece);
+      expect(rotatePieceCounterclockwise(downPiece, 3), expectedRightPiece);
+      expect(rotatePieceCounterclockwise(upPiece, 3), expectedLeftPiece);
     });
   });
 

@@ -137,8 +137,7 @@ void main() {
         test('does not add piece if both are in single-empty column', () {
           final Field field = fieldFromString('E\nG');
           final Piece upPieceOverSingleEmptyColumn =
-              leftRedBluePiece.rebuild((b) => b
-                ..orientation = Direction.up);
+              leftRedBluePiece.rebuild((b) => b..orientation = Direction.up);
 
           expect(dropPiece(field, upPieceOverSingleEmptyColumn), field);
         });
@@ -149,6 +148,7 @@ void main() {
             'GRY\n'
             'GRB\n'
             'ERR');
+        // reds and greens pop, leaving yellow and blue left over.
         final Field expectedField = fieldFromString('EEE\n'
             'EEY\n'
             'EEB\n'

@@ -34,7 +34,7 @@ State rotateClockwise(State state) => state.rebuild((b) => b.currentPiece =
 
 State rotateCounterclockwise(State state) =>
     state.rebuild((b) => b.currentPiece =
-        rotatePieceCounterClockwise(state.currentPiece, state.field.columnCount)
+        rotatePieceCounterclockwise(state.currentPiece, state.field.columnCount)
             .toBuilder());
 
 State drop(State state) =>

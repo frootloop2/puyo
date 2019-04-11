@@ -70,7 +70,7 @@ Piece rotatePieceClockwise(Piece piece, int columnCount) {
   return builder.build();
 }
 
-Piece rotatePieceCounterClockwise(Piece piece, int columnCount) {
+Piece rotatePieceCounterclockwise(Piece piece, int columnCount) {
   PieceBuilder builder = piece.toBuilder();
   builder.orientation = _clockwiseRotationOrder[
       (_clockwiseRotationOrder.indexOf(piece.orientation) - 1) %
@@ -93,8 +93,7 @@ Piece newPiece(BuiltList<Color> colors) => Piece((b) => b
   ..corePuyoColumnIndex = 2
   ..orientation = Direction.up);
 
-String pieceString(Piece piece) =>
-    '${characterByColor[piece.corePuyoColor]}'
+String pieceString(Piece piece) => '${characterByColor[piece.corePuyoColor]}'
     '${characterByColor[piece.secondaryPuyoColor]}'
     '${piece.corePuyoColumnIndex}'
     '${characterByDirection[piece.orientation]}';
