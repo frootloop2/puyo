@@ -5,7 +5,8 @@ import 'package:puyo/src/shell/runner.dart';
 import 'package:puyo/src/shell/system.dart';
 
 class BrowserRunner implements Runner {
-  static final _speed = 1000 / 60; // 60 fps
+  static final int fps = 60;
+  static final double _minimumTimeBetweenTicks = 1000 / fps;
 
   State _state;
   List<System> _systems;
@@ -15,20 +16,18 @@ class BrowserRunner implements Runner {
   void run(State initialState, List<System> systems) async {
     _state = initialState;
     _systems = systems;
+
     _timeOfLastTick = await window.animationFrame;
-    _state = _tick(_state, _systems);
+    _tick();
 
     while (true) {
-      final num deltaSinceLastTick =
-          (await window.animationFrame) - _timeOfLastTick;
-      if (deltaSinceLastTick > _speed) {
-        _state = _tick(_state, _systems);
+      final num currentTime = await window.animationFrame;
+      if (currentTime - _timeOfLastTick > _minimumTimeBetweenTicks) {
+        _timeOfLastTick = currentTime;
+        _tick();
       }
     }
   }
 
-  static State _tick(State state, List<System> systems) {
-    systems.forEach((system) => state = system.update(state));
-    return state;
-  }
+  void _tick() => _systems.forEach((system) => _state = system.update(_state));
 }

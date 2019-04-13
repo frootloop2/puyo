@@ -1,43 +1,44 @@
 import 'dart:html';
 import 'dart:math';
 
-import 'package:puyo/src/core/model/common.dart';
+import 'package:puyo/src/core/model/color.dart';
 import 'package:puyo/src/core/model/field.dart';
+import 'package:puyo/src/core/model/piece.dart';
+import 'package:puyo/src/core/model/piece_queue.dart';
 import 'package:puyo/src/core/model/state.dart';
 import 'package:puyo/src/shell/system.dart';
 
 class BrowserCanvasRenderer implements System {
-  static final int _columnCount = 6;
-  static final int _rowCount = 12;
-
-  static final int _gridSideLength = 50; // px
-  static final int _fieldWidth = _columnCount * _gridSideLength;
-  static final int _fieldHeight = _rowCount * _gridSideLength;
-
-  static final int _canvasWidth =
-      _fieldWidth + (2 * _gridSideLength); // 2 rows on side for queue
-  static final int _canvasHeight =
-      _fieldHeight + (2 * _gridSideLength); // 2 columns on top for preview
-
   static final Map<Color, String> _colors = {
     Color.red: '#f00',
     Color.green: '#0f0',
     Color.blue: '#00f',
     Color.yellow: '#ff0',
   };
-
   static final Map<Color, String> _ghostColors = {
     Color.red: '#f88',
     Color.green: '#8f8',
     Color.blue: '#88f',
     Color.yellow: '#ff8',
   };
+  static final int _gridSideLength = 50; // px
+
+  int _fieldWidth;
+  int _fieldHeight;
+  int _canvasWidth;
+  int _canvasHeight;
 
   final CanvasElement _canvas = querySelector('#canvas');
 
   CanvasRenderingContext2D get _renderer => _canvas.context2D;
 
-  BrowserCanvasRenderer() {
+  BrowserCanvasRenderer(int columnCount, int rowCount)
+      : _fieldWidth = columnCount * _gridSideLength,
+        _fieldHeight = rowCount * _gridSideLength,
+        // 2 extra rows on the side for queue
+        _canvasWidth = columnCount * _gridSideLength + (2 * _gridSideLength),
+        // 2 extra columns on top for preview
+        _canvasHeight = rowCount * _gridSideLength + (2 * _gridSideLength) {
     querySelector('body').style.margin = '0';
     _canvas
       ..width = _canvasWidth
@@ -47,127 +48,103 @@ class BrowserCanvasRenderer implements System {
 
   @override
   State update(State state) {
-    _renderer.clearRect(0, 0, _canvasWidth, _canvasHeight);
-    _drawState(_renderer, state);
+    _clearCanvas();
+    _drawLines(state);
+    _drawField(state.field);
+    _drawCurrentPiece(state.currentPiece, state.field.rowCount);
+    _drawCurrentPieceGhost(state.field, state.currentPiece);
+    _drawPieceQueue(
+        state.pieceQueue, state.field.columnCount, state.field.rowCount);
     return state;
   }
 
-  static void _drawState(CanvasRenderingContext2D renderer, State state) {
-    _drawLines(renderer, state);
+  void _clearCanvas() => _renderer.clearRect(0, 0, _canvasWidth, _canvasHeight);
 
-    for (int columnIndex = 0; columnIndex < _columnCount; columnIndex++) {
-      for (int rowIndex = 0; rowIndex < _rowCount; rowIndex++) {
-        if (state.field.cellsByRowByColumn[columnIndex][rowIndex].isEmpty) {
-          continue;
-        }
-        _drawPuyo(
-            renderer,
-            columnIndex,
-            rowIndex,
-            _colors[colorByValue[
-                state.field.cellsByRowByColumn[columnIndex][rowIndex].value]]);
-      }
-    }
-    // current piece
-    _drawPuyo(
-        renderer,
-        state.currentPiece
-            .columnIndexes[state.currentPiece.colorProcessingOrder.first],
-        _rowCount,
-        _colors[state.currentPiece
-            .colors[state.currentPiece.colorProcessingOrder.first]]);
-    _drawPuyo(
-        renderer,
-        state.currentPiece
-            .columnIndexes[state.currentPiece.colorProcessingOrder.last],
-        state.currentPiece.columnIndexes.first ==
-                state.currentPiece.columnIndexes.last
-            ? _rowCount + 1
-            : _rowCount,
-        _colors[state.currentPiece
-            .colors[state.currentPiece.colorProcessingOrder.last]]);
-
-    // ghost
-    if (!isColumnFull(state.field, state.currentPiece.columnIndexes.first) &&
-        !isColumnFull(state.field, state.currentPiece.columnIndexes.last) &&
-        (state.currentPiece.columnIndexes.first !=
-                state.currentPiece.columnIndexes.last ||
-            indexOfLowestEmptyRowInColumn(
-                    state.field, state.currentPiece.columnIndexes.first) !=
-                state.field.rowCount - 1)) {
-      _drawPuyo(
-          renderer,
-          state.currentPiece
-              .columnIndexes[state.currentPiece.colorProcessingOrder.first],
-          indexOfLowestEmptyRowInColumn(
-              state.field,
-              state.currentPiece.columnIndexes[
-                  state.currentPiece.colorProcessingOrder.first]),
-          _ghostColors[state.currentPiece
-              .colors[state.currentPiece.colorProcessingOrder.first]]);
-      _drawPuyo(
-          renderer,
-          state.currentPiece
-              .columnIndexes[state.currentPiece.colorProcessingOrder.last],
-          indexOfLowestEmptyRowInColumn(
-                  state.field,
-                  state.currentPiece.columnIndexes[
-                      state.currentPiece.colorProcessingOrder.last]) +
-              (state.currentPiece.columnIndexes.first ==
-                      state.currentPiece.columnIndexes.last
-                  ? 1
-                  : 0),
-          _ghostColors[state.currentPiece
-              .colors[state.currentPiece.colorProcessingOrder.last]]);
-    }
-
-    // queue
-    _drawPuyo(renderer, _columnCount, _rowCount,
-        _colors[state.pieceQueue.next.first]);
-    _drawPuyo(renderer, _columnCount, _rowCount + 1,
-        _colors[state.pieceQueue.next.last]);
-    _drawPuyo(renderer, _columnCount + 1, _rowCount,
-        _colors[state.pieceQueue.nextNext.first]);
-    _drawPuyo(renderer, _columnCount + 1, _rowCount + 1,
-        _colors[state.pieceQueue.nextNext.last]);
-  }
-
-  static void _drawPuyo(CanvasRenderingContext2D renderer, int columnIndex,
-      int rowIndex, String color) {
-    //print('drawing column $columnIndex row $rowIndex color $color');
-    renderer
-      ..fillStyle = color
-      ..beginPath()
-      ..arc(
-          // center x
-          (columnIndex * _gridSideLength) + (_gridSideLength / 2),
-          // center y, convert bottom-left origin to top-left origin
-          _canvasHeight - (rowIndex * _gridSideLength) - (_gridSideLength / 2),
-          // radius
-          _gridSideLength / 2,
-          // start radians
-          0,
-          // end radians
-          2 * pi)
-      ..fill();
-  }
-
-  static void _drawLines(CanvasRenderingContext2D renderer, State state) {
+  void _drawLines(State state) {
     // top border of field
-    renderer
+    _renderer
       ..strokeStyle = '#fff'
       ..beginPath()
-      ..moveTo(0, _canvasHeight - (state.field.rowCount * _gridSideLength))
-      ..lineTo(state.field.columnCount * _gridSideLength,
-          _canvasHeight - (state.field.rowCount * _gridSideLength))
+      ..moveTo(0, _canvasHeight - _fieldHeight)
+      ..lineTo(_fieldWidth, _canvasHeight - _fieldHeight)
       ..stroke();
 
     // right border of field
-    renderer
+    _renderer
       ..strokeStyle = '#fff'
       ..beginPath()
       ..moveTo(state.field.columnCount * _gridSideLength, 0)
       ..lineTo(state.field.columnCount * _gridSideLength, _canvasHeight)
       ..stroke();
   }
+
+  void _drawField(Field field) =>
+      field.cells.where((cell) => cell.isNotEmpty).forEach((cell) => _drawPuyo(
+          cell.columnIndex, cell.rowIndex, _colors[colorByValue[cell.value]]));
+
+  void _drawCurrentPiece(Piece piece, int rowCount) {
+    _drawPuyo(piece.columnIndexes[piece.colorProcessingOrder.first], rowCount,
+        _colors[piece.colors[piece.colorProcessingOrder.first]]);
+    // draw above the first puyo if they are in the same column
+    _drawPuyo(
+        piece.columnIndexes[piece.colorProcessingOrder.last],
+        piece.columnIndexes.first == piece.columnIndexes.last
+            ? rowCount + 1
+            : rowCount,
+        _colors[piece.colors[piece.colorProcessingOrder.last]]);
+  }
+
+  void _drawCurrentPieceGhost(Field field, Piece piece) {
+    bool eitherColumnFull = isColumnFull(field, piece.columnIndexes.first) ||
+        isColumnFull(field, piece.columnIndexes.last);
+    bool bothPuyosInSameColumn =
+        piece.columnIndexes.first == piece.columnIndexes.last;
+    bool singleColumnHasOnly1EmptyCell =
+        indexOfLowestEmptyRowInColumn(field, piece.columnIndexes.first) ==
+            field.rowCount - 1;
+
+    // skip drawing ghost if piece is not able to be dropped
+    if (eitherColumnFull ||
+        (bothPuyosInSameColumn && singleColumnHasOnly1EmptyCell)) {
+      return;
+    }
+
+    _drawPuyo(
+        piece.columnIndexes[piece.colorProcessingOrder.first],
+        indexOfLowestEmptyRowInColumn(
+            field, piece.columnIndexes[piece.colorProcessingOrder.first]),
+        _ghostColors[piece.colors[piece.colorProcessingOrder.first]]);
+    // draw above first ghost puyo if they are in the same column
+    _drawPuyo(
+        piece.columnIndexes[piece.colorProcessingOrder.last],
+        indexOfLowestEmptyRowInColumn(
+                field, piece.columnIndexes[piece.colorProcessingOrder.last]) +
+            (bothPuyosInSameColumn ? 1 : 0),
+        _ghostColors[piece.colors[piece.colorProcessingOrder.last]]);
+  }
+
+  void _drawPieceQueue(PieceQueue pieceQueue, int columnCount, int rowCount) {
+    // next
+    _drawPuyo(columnCount, rowCount, _colors[pieceQueue.next.first]);
+    _drawPuyo(columnCount, rowCount + 1, _colors[pieceQueue.next.last]);
+    // next next
+    _drawPuyo(columnCount + 1, rowCount, _colors[pieceQueue.nextNext.first]);
+    _drawPuyo(columnCount + 1, rowCount + 1, _colors[pieceQueue.nextNext.last]);
+  }
+
+  void _drawPuyo(int columnIndex, int rowIndex, String color) => _renderer
+    ..fillStyle = color
+    ..beginPath()
+    ..arc(
+        // center x
+        (columnIndex * _gridSideLength) + (_gridSideLength / 2),
+        // center y, convert bottom-left origin to top-left origin
+        _canvasHeight - (rowIndex * _gridSideLength) - (_gridSideLength / 2),
+        // radius
+        _gridSideLength / 2,
+        // start radians
+        0,
+        // end radians
+        2 * pi)
+    ..fill();
 }

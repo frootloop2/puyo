@@ -4,6 +4,9 @@ import 'package:puyo/src/shell/browser_keyboard_processor.dart';
 import 'package:puyo/src/shell/browser_runner.dart';
 
 main() {
-  BrowserRunner()
-      .run(initialState, [BrowserKeyboardProcessor(), BrowserCanvasRenderer()]);
+  BrowserRunner().run(initialState, [
+    BrowserKeyboardProcessor(),
+    BrowserCanvasRenderer(
+        initialState.field.columnCount, initialState.field.rowCount)
+  ]);
 }

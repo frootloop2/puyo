@@ -1,5 +1,5 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:puyo/src/core/model/common.dart';
+import 'package:puyo/src/core/model/color.dart';
 import 'package:puyo/src/core/model/piece_queue.dart';
 import 'package:test/test.dart';
 
