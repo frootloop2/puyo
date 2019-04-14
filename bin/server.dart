@@ -15,7 +15,9 @@ final Map<int, WebSocketChannel> playerConnectionsByPlayerId = {};
 final Set<WebSocketChannel> spectatorConnections = {};
 final StreamController<Input> inputStreamController = StreamController();
 
-Game game = Game((b) => b.states.addAll([initialState, initialState]));
+Game game = Game((b) => b
+  ..states.addAll([initialState, initialState])
+  ..playerId = -1);
 
 main() async {
   inputStreamController.stream.listen((input) {
@@ -70,9 +72,16 @@ void registerSpectator(WebSocketChannel webSocket) {
       onDone: () => spectatorConnections.remove(webSocket));
 }
 
-void pushGame(Game game, Iterable<WebSocketChannel> webSockets) {
-  final String serializedGame = serializeGame(game);
-  webSockets.forEach((webSocket) => webSocket.sink.add(serializedGame));
+void pushGame(Game gameWithoutPlayerId, Iterable<WebSocketChannel> webSockets) {
+  webSockets.forEach((webSocket) {
+    final int playerId = playerConnectionsByPlayerId.containsValue(webSocket)
+        ? (playerConnectionsByPlayerId[0] == webSocket ? 0 : 1)
+        : -1;
+    final Game gameWithPlayerId =
+        gameWithoutPlayerId.rebuild((b) => b.playerId = playerId);
+    final String serializedGameWithPlayerId = serializeGame(gameWithPlayerId);
+    webSocket.sink.add(serializedGameWithPlayerId);
+  });
 }
 
 String serializeGame(Game game) => json.encode(serializers.serialize(game));

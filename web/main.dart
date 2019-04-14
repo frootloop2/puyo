@@ -22,24 +22,38 @@ main() async {
   final String connectionType =
       (window.location.hostname == 'localhost') ? 'ws://' : 'wss://';
 
-  final Renderer renderer0 = Renderer('canvas0', 6, 12);
-  final Renderer renderer1 = Renderer('canvas1', 6, 12);
+  final List<Renderer> renderers = [
+    Renderer('canvas0', 6, 12),
+    Renderer('canvas1', 6, 12)
+  ];
+  List<int> renderOrder;
 
   final WebSocketChannel webSocketChannel = HtmlWebSocketChannel.connect(
       '$connectionType${window.location.host}$path');
 
   webSocketChannel.stream.listen((gameString) {
     final Game game = serializers.deserialize(json.decode(gameString));
-    renderer0.render(game.states.first);
-    renderer1.render(game.states.last);
+
+    DivElement playerIdElement = querySelector('#playerId');
+    if (playerIdElement.text.isEmpty) {
+      playerIdElement.appendText(
+          game.playerId == -1 ? 'spectating' : 'player ${game.playerId + 1}');
+      renderOrder = game.playerId == 1 ? [1, 0] : [0, 1];
+    }
+
+    for (int i = 0; i < renderOrder.length; i++) {
+      renderers[i].render(game.states[renderOrder[i]]);
+    }
   });
 
   window.onKeyDown.listen((KeyboardEvent e) {
     if (!inputTypeByKeyCode.containsKey(e.keyCode)) {
       return;
     }
-    // these will be ignored if client is only a spectator, but there is
-    // currently no way of knowing if that is the case.
+    if (querySelector('#playerId').text == 'spectating') {
+      return;
+    }
+
     webSocketChannel.sink.add('${inputTypeByKeyCode[e.keyCode]}');
   });
 }

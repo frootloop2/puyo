@@ -31,4 +31,3 @@ abstract class Input implements Built<Input, InputBuilder> {
 
   factory Input([updates(InputBuilder b)]) = _$Input;
 }
-

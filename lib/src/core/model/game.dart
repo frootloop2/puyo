@@ -8,6 +8,8 @@ part 'game.g.dart';
 abstract class Game implements Built<Game, GameBuilder> {
   static Serializer<Game> get serializer => _$gameSerializer;
 
+  int get playerId;
+
   BuiltList<State> get states;
 
   Game._();
