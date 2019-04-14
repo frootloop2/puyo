@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
@@ -12,10 +13,20 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 final Map<int, WebSocketChannel> playerConnectionsByPlayerId = {};
 final Set<WebSocketChannel> spectatorConnections = {};
+final StreamController<Input> inputStreamController = StreamController();
 
 Game game = Game((b) => b.states.addAll([initialState, initialState]));
 
 main() async {
+  inputStreamController.stream.listen((input) {
+    game = update(game, input);
+    pushGame(
+        game,
+        []
+          ..addAll(playerConnectionsByPlayerId.values)
+          ..addAll(spectatorConnections));
+  });
+
   await runAppEngine((request) {
     if (request.uri.path == '/test') {
       handleRequest(request, webSocketHandler(registerWebSocket));
@@ -33,27 +44,21 @@ void registerWebSocket(WebSocketChannel webSocket) {
   } else {
     registerPlayer(webSocket);
   }
+
+  // Bring new client up to speed
+  pushGame(game, [webSocket]);
 }
 
 void registerPlayer(WebSocketChannel webSocket) {
   final int playerId = playerConnectionsByPlayerId.containsKey(0) ? 1 : 0;
   playerConnectionsByPlayerId[playerId] = webSocket;
 
-  // Push the current state so client has something to draw even if no inputs
-  // have been received since they connected.
-  pushGame(game, [webSocket]);
-
-  webSocket.stream.listen((inputString) {
-    final Input input = parseInput(inputString);
-
-    // TODO: this is race condition
-    game = update(game, playerId, input);
-
-    pushGame(
-        game,
-        []
-          ..addAll(playerConnectionsByPlayerId.values)
-          ..addAll(spectatorConnections));
+  webSocket.stream.listen((inputTypeString) {
+    final InputType inputType = parseInputType(inputTypeString);
+    final Input input = Input((b) => b
+      ..inputType = inputType
+      ..playerId = playerId);
+    inputStreamController.sink.add(input);
   }, onDone: () {
     playerConnectionsByPlayerId.remove(playerId);
   });
@@ -63,10 +68,6 @@ void registerSpectator(WebSocketChannel webSocket) {
   spectatorConnections.add(webSocket);
   webSocket.stream.listen((message) {},
       onDone: () => spectatorConnections.remove(webSocket));
-
-  // Push the current state so client has something to draw even if no inputs
-  // have been received since they connected.
-  pushGame(game, [webSocket]);
 }
 
 void pushGame(Game game, Iterable<WebSocketChannel> webSockets) {
@@ -76,29 +77,29 @@ void pushGame(Game game, Iterable<WebSocketChannel> webSockets) {
 
 String serializeGame(Game game) => json.encode(serializers.serialize(game));
 
-Input parseInput(String inputString) =>
-    Input.values.firstWhere((e) => e.toString() == inputString);
+InputType parseInputType(String inputTypeString) =>
+    InputType.values.firstWhere((e) => e.toString() == inputTypeString);
 
-Game update(Game game, int stateIndexToUpdate, Input input) {
-  State stateToUpdate = game.states[stateIndexToUpdate];
+Game update(Game game, Input input) {
+  State stateToUpdate = game.states[input.playerId];
   State newState;
-  switch (input) {
-    case Input.moveLeft:
+  switch (input.inputType) {
+    case InputType.moveLeft:
       newState = moveLeft(stateToUpdate);
       break;
-    case Input.moveRight:
+    case InputType.moveRight:
       newState = moveRight(stateToUpdate);
       break;
-    case Input.rotateClockwise:
+    case InputType.rotateClockwise:
       newState = rotateClockwise(stateToUpdate);
       break;
-    case Input.rotateCounterclockwise:
+    case InputType.rotateCounterclockwise:
       newState = rotateCounterclockwise(stateToUpdate);
       break;
-    case Input.drop:
+    case InputType.drop:
       newState = allChains(drop(stateToUpdate));
       break;
   }
 
-  return game.rebuild((b) => b.states[stateIndexToUpdate] = newState);
+  return game.rebuild((b) => b.states[input.playerId] = newState);
 }

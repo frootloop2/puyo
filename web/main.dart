@@ -8,12 +8,12 @@ import 'package:puyo/src/core/model/serializers.dart';
 import 'package:web_socket_channel/html.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-const Map<int, Input> inputByKeyCode = {
-  KeyCode.LEFT: Input.moveLeft,
-  KeyCode.RIGHT: Input.moveRight,
-  KeyCode.X: Input.rotateClockwise,
-  KeyCode.Z: Input.rotateCounterclockwise,
-  KeyCode.SPACE: Input.drop
+const Map<int, InputType> inputTypeByKeyCode = {
+  KeyCode.LEFT: InputType.moveLeft,
+  KeyCode.RIGHT: InputType.moveRight,
+  KeyCode.X: InputType.rotateClockwise,
+  KeyCode.Z: InputType.rotateCounterclockwise,
+  KeyCode.SPACE: InputType.drop
 };
 
 const String path = '/test';
@@ -35,11 +35,11 @@ main() async {
   });
 
   window.onKeyDown.listen((KeyboardEvent e) {
-    if (!inputByKeyCode.containsKey(e.keyCode)) {
+    if (!inputTypeByKeyCode.containsKey(e.keyCode)) {
       return;
     }
     // these will be ignored if client is only a spectator, but there is
     // currently no way of knowing if that is the case.
-    webSocketChannel.sink.add('${inputByKeyCode[e.keyCode]}');
+    webSocketChannel.sink.add('${inputTypeByKeyCode[e.keyCode]}');
   });
 }

@@ -18,6 +18,7 @@ part 'serializers.g.dart';
   Field,
   Game,
   Input,
+  InputType,
   Piece,
   PieceQueue,
   State,
