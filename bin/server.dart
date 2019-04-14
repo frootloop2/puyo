@@ -10,14 +10,14 @@ import 'package:shelf_static/shelf_static.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-const int maxWebSocketConnections = 2;
-final Map<int, WebSocketChannel> webSocketConnectionsByConnectionId = {};
+final Map<int, WebSocketChannel> playerConnectionsByPlayerId = {};
+final Set<WebSocketChannel> spectatorConnections = {};
+
 Game game = Game((b) => b.states.addAll([initialState, initialState]));
 
 main() async {
   await runAppEngine((request) {
-    if (webSocketConnectionsByConnectionId.length < maxWebSocketConnections &&
-        request.uri.path == '/test') {
+    if (request.uri.path == '/test') {
       handleRequest(request, webSocketHandler(registerWebSocket));
     } else {
       handleRequest(request,
@@ -27,9 +27,17 @@ main() async {
 }
 
 void registerWebSocket(WebSocketChannel webSocket) {
-  final int connectionId =
-      webSocketConnectionsByConnectionId.containsKey(0) ? 1 : 0;
-  webSocketConnectionsByConnectionId[connectionId] = webSocket;
+  if (playerConnectionsByPlayerId.containsKey(0) &&
+      playerConnectionsByPlayerId.containsKey(1)) {
+    registerSpectator(webSocket);
+  } else {
+    registerPlayer(webSocket);
+  }
+}
+
+void registerPlayer(WebSocketChannel webSocket) {
+  final int playerId = playerConnectionsByPlayerId.containsKey(0) ? 1 : 0;
+  playerConnectionsByPlayerId[playerId] = webSocket;
 
   // Push the current state so client has something to draw even if no inputs
   // have been received since they connected.
@@ -37,11 +45,28 @@ void registerWebSocket(WebSocketChannel webSocket) {
 
   webSocket.stream.listen((inputString) {
     final Input input = parseInput(inputString);
-    game = update(game, connectionId, input);
-    pushGame(game, webSocketConnectionsByConnectionId.values);
+
+    // TODO: this is race condition
+    game = update(game, playerId, input);
+
+    pushGame(
+        game,
+        []
+          ..addAll(playerConnectionsByPlayerId.values)
+          ..addAll(spectatorConnections));
   }, onDone: () {
-    webSocketConnectionsByConnectionId.remove(connectionId);
+    playerConnectionsByPlayerId.remove(playerId);
   });
+}
+
+void registerSpectator(WebSocketChannel webSocket) {
+  spectatorConnections.add(webSocket);
+  webSocket.stream.listen((message) {},
+      onDone: () => spectatorConnections.remove(webSocket));
+
+  // Push the current state so client has something to draw even if no inputs
+  // have been received since they connected.
+  pushGame(game, [webSocket]);
 }
 
 void pushGame(Game game, Iterable<WebSocketChannel> webSockets) {

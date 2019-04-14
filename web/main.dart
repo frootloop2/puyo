@@ -38,6 +38,8 @@ main() async {
     if (!inputByKeyCode.containsKey(e.keyCode)) {
       return;
     }
+    // these will be ignored if client is only a spectator, but there is
+    // currently no way of knowing if that is the case.
     webSocketChannel.sink.add('${inputByKeyCode[e.keyCode]}');
   });
 }
