@@ -6,9 +6,8 @@ import 'package:puyo/src/core/model/field.dart';
 import 'package:puyo/src/core/model/piece.dart';
 import 'package:puyo/src/core/model/piece_queue.dart';
 import 'package:puyo/src/core/model/state.dart';
-import 'package:puyo/src/shell/system.dart';
 
-class BrowserCanvasRenderer implements System {
+class Renderer {
   static final Map<Color, String> _colors = {
     Color.red: '#f00',
     Color.green: '#0f0',
@@ -32,7 +31,7 @@ class BrowserCanvasRenderer implements System {
 
   CanvasRenderingContext2D get _renderer => _canvas.context2D;
 
-  BrowserCanvasRenderer(int columnCount, int rowCount)
+  Renderer(int columnCount, int rowCount)
       : _fieldWidth = columnCount * _gridSideLength,
         _fieldHeight = rowCount * _gridSideLength,
         // 2 extra rows on the side for queue
@@ -46,8 +45,7 @@ class BrowserCanvasRenderer implements System {
       ..style.backgroundColor = '0';
   }
 
-  @override
-  State update(State state) {
+  State render(State state) {
     _clearCanvas();
     _drawLines(state);
     _drawField(state.field);
