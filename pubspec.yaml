@@ -6,6 +6,7 @@ dependencies:
   built_value:
   shelf:
   shelf_static:
+  shelf_web_socket:
 
 dev_dependencies:
   build_runner:
