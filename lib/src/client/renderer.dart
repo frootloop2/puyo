@@ -27,12 +27,13 @@ class Renderer {
   int _canvasWidth;
   int _canvasHeight;
 
-  final CanvasElement _canvas = querySelector('#canvas');
+  final CanvasElement _canvas;
 
   CanvasRenderingContext2D get _renderer => _canvas.context2D;
 
-  Renderer(int columnCount, int rowCount)
-      : _fieldWidth = columnCount * _gridSideLength,
+  Renderer(String canvasId, int columnCount, int rowCount)
+      : _canvas = querySelector('#$canvasId'),
+        _fieldWidth = columnCount * _gridSideLength,
         _fieldHeight = rowCount * _gridSideLength,
         // 2 extra rows on the side for queue
         _canvasWidth = columnCount * _gridSideLength + (2 * _gridSideLength),

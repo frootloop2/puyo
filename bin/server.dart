@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
+import 'package:puyo/src/core/model/game.dart';
 import 'package:puyo/src/core/model/input.dart';
 import 'package:puyo/src/core/model/serializers.dart';
 import 'package:puyo/src/core/model/state.dart';
@@ -9,26 +10,15 @@ import 'package:shelf_static/shelf_static.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-main() async {
-  const int maxWebSocketConnections = 5;
-  int webSocketConnections = 0;
+const int maxWebSocketConnections = 2;
+final Map<int, WebSocketChannel> webSocketConnectionsByConnectionId = {};
+Game game = Game((b) => b.states.addAll([initialState, initialState]));
 
+main() async {
   await runAppEngine((request) {
-    if (webSocketConnections < maxWebSocketConnections &&
+    if (webSocketConnectionsByConnectionId.length < maxWebSocketConnections &&
         request.uri.path == '/test') {
-      handleRequest(request, webSocketHandler((WebSocketChannel webSocket) {
-        webSocketConnections++;
-        State state = initialState;
-        webSocket.sink.add(json.encode(serializers.serialize(state)));
-        webSocket.stream.listen((inputString) {
-          final Input input =
-              Input.values.firstWhere((e) => e.toString() == inputString);
-          state = update(state, input);
-          webSocket.sink.add(json.encode(serializers.serialize(state)));
-        }, onDone: () {
-          webSocketConnections--;
-        });
-      }));
+      handleRequest(request, webSocketHandler(registerWebSocket));
     } else {
       handleRequest(request,
           createStaticHandler('./build', defaultDocument: 'index.html'));
@@ -36,19 +26,54 @@ main() async {
   });
 }
 
-State update(State state, Input input) {
+void registerWebSocket(WebSocketChannel webSocket) {
+  final int connectionId =
+      webSocketConnectionsByConnectionId.containsKey(0) ? 1 : 0;
+  webSocketConnectionsByConnectionId[connectionId] = webSocket;
+
+  // Push the current state so client has something to draw even if no inputs
+  // have been received since they connected.
+  pushGame(game, [webSocket]);
+
+  webSocket.stream.listen((inputString) {
+    final Input input = parseInput(inputString);
+    game = update(game, connectionId, input);
+    pushGame(game, webSocketConnectionsByConnectionId.values);
+  }, onDone: () {
+    webSocketConnectionsByConnectionId.remove(connectionId);
+  });
+}
+
+void pushGame(Game game, Iterable<WebSocketChannel> webSockets) {
+  final String serializedGame = serializeGame(game);
+  webSockets.forEach((webSocket) => webSocket.sink.add(serializedGame));
+}
+
+String serializeGame(Game game) => json.encode(serializers.serialize(game));
+
+Input parseInput(String inputString) =>
+    Input.values.firstWhere((e) => e.toString() == inputString);
+
+Game update(Game game, int stateIndexToUpdate, Input input) {
+  State stateToUpdate = game.states[stateIndexToUpdate];
+  State newState;
   switch (input) {
     case Input.moveLeft:
-      return moveLeft(state);
+      newState = moveLeft(stateToUpdate);
+      break;
     case Input.moveRight:
-      return moveRight(state);
+      newState = moveRight(stateToUpdate);
+      break;
     case Input.rotateClockwise:
-      return rotateClockwise(state);
+      newState = rotateClockwise(stateToUpdate);
+      break;
     case Input.rotateCounterclockwise:
-      return rotateCounterclockwise(state);
+      newState = rotateCounterclockwise(stateToUpdate);
+      break;
     case Input.drop:
-      return allChains(drop(state));
-    default:
-      return state;
+      newState = allChains(drop(stateToUpdate));
+      break;
   }
+
+  return game.rebuild((b) => b.states[stateIndexToUpdate] = newState);
 }
