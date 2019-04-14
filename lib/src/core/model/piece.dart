@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 import 'package:puyo/src/core/model/color.dart';
 import 'package:puyo/src/core/model/direction.dart';
 
@@ -11,6 +12,8 @@ final BuiltList<Direction> _clockwiseRotationOrder =
     BuiltList([Direction.up, Direction.right, Direction.down, Direction.left]);
 
 abstract class Piece implements Built<Piece, PieceBuilder> {
+  static Serializer<Piece> get serializer => _$pieceSerializer;
+
   Color get corePuyoColor;
 
   Color get secondaryPuyoColor;

@@ -1,4 +1,5 @@
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 import 'package:puyo/src/core/model/field.dart';
 import 'package:puyo/src/core/model/piece.dart';
 import 'package:puyo/src/core/model/piece_queue.dart';
@@ -6,6 +7,8 @@ import 'package:puyo/src/core/model/piece_queue.dart';
 part 'state.g.dart';
 
 abstract class State implements Built<State, StateBuilder> {
+  static Serializer<State> get serializer => _$stateSerializer;
+
   PieceQueue get pieceQueue;
 
   Field get field;

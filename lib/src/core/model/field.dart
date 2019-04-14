@@ -1,12 +1,27 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 import 'package:puyo/src/core/chain.dart';
 import 'package:puyo/src/core/model/color.dart';
 import 'package:puyo/src/core/model/piece.dart';
 
 part 'field.g.dart';
 
-enum Value { empty, red, green, blue, yellow }
+class Value extends EnumClass {
+  static Serializer<Value> get serializer => _$valueSerializer;
+
+  static const Value empty = _$empty;
+  static const Value red = _$red;
+  static const Value green = _$green;
+  static const Value blue = _$blue;
+  static const Value yellow = _$yellow;
+
+  const Value._(String name) : super(name);
+
+  static BuiltSet<Value> get values => _$values;
+
+  static Value valueOf(String name) => _$valueOf(name);
+}
 
 const Map<Value, String> characterByValue = {
   Value.empty: 'E',
@@ -39,6 +54,8 @@ const Map<Value, Color> colorByValue = {
 };
 
 abstract class Cell implements Built<Cell, CellBuilder> {
+  static Serializer<Cell> get serializer => _$cellSerializer;
+
   Value get value;
 
   int get columnIndex;
@@ -55,6 +72,8 @@ abstract class Cell implements Built<Cell, CellBuilder> {
 }
 
 abstract class Field implements Built<Field, FieldBuilder> {
+  static Serializer<Field> get serializer => _$fieldSerializer;
+
   BuiltList<BuiltList<Cell>> get cellsByRowByColumn;
 
   BuiltSet<Cell> get cells =>

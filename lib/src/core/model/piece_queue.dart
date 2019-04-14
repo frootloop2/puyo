@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
 import 'package:puyo/src/core/model/color.dart';
 
 part 'piece_queue.g.dart';
@@ -9,6 +10,8 @@ part 'piece_queue.g.dart';
 // TODO: rethink randomness
 
 abstract class PieceQueue implements Built<PieceQueue, PieceQueueBuilder> {
+  static Serializer<PieceQueue> get serializer => _$pieceQueueSerializer;
+
   BuiltList<Color> get next;
 
   BuiltList<Color> get nextNext;
@@ -27,8 +30,8 @@ PieceQueue advanceQueue(PieceQueue queue) => queue.rebuild((b) => b
   ..nextNext = _generateColorPair().toBuilder());
 
 BuiltList<Color> _generateColorPair() => BuiltList([
-      Color.values[Random().nextInt(Color.values.length)],
-      Color.values[Random().nextInt(Color.values.length)]
+      Color.values.toList()[Random().nextInt(Color.values.length)],
+      Color.values.toList()[Random().nextInt(Color.values.length)]
     ]);
 
 String pieceQueueString(PieceQueue pieceQueue) =>
