@@ -6,12 +6,17 @@ import 'package:web_socket_channel/html.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 main() {
-  WebSocketChannel channel =
-      HtmlWebSocketChannel.connect('ws://${window.location.host}/test');
-  channel.stream.listen((message) {
+  final String path = '/test';
+  final String connectionType =
+      (window.location.hostname == 'localhost') ? 'ws://' : 'wss://';
+
+  WebSocketChannel webSocketChannel = HtmlWebSocketChannel.connect(
+      '$connectionType${window.location.host}$path');
+
+  webSocketChannel.stream.listen((message) {
     print(message);
   });
-  channel.sink.add('hello websocket');
+  webSocketChannel.sink.add('hello websocket');
 
   Runner().run(initialState);
 }
