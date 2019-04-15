@@ -5,9 +5,14 @@ const minimumChainLength = 4;
 
 // TODO: make faster
 
-BuiltSet<Cell> chainsInField(Field field) => BuiltSet(field.cells
-    .where((cell) => cell.isNotEmpty)
-    .where((cell) => _isPopped(field, cell)));
+BuiltSet<Cell> poppedCellsInField(Field field) {
+  final Iterable<Cell> chainedCells = field.cells
+      .where((cell) => cell.isNotEmpty && cell.value != Value.trash)
+      .where((cell) => _isPopped(field, cell));
+  final Iterable<Cell> neighboringTrash = chainedCells.expand((cell) =>
+      neighbors(field, cell).where((cell) => cell.value == Value.trash));
+  return (SetBuilder<Cell>(chainedCells)..addAll(neighboringTrash)).build();
+}
 
 bool _isPopped(Field field, Cell cell) =>
     _findChainLength(field, cell) >= minimumChainLength;

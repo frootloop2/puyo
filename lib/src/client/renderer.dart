@@ -8,13 +8,21 @@ import 'package:puyo/src/core/model/piece_queue.dart';
 import 'package:puyo/src/core/model/state.dart';
 
 class Renderer {
-  static final Map<Color, String> _colors = {
+  static final Map<Value, String> _hexByValue = {
+    Value.empty: '#000',
+    Value.trash: '#fff',
+    Value.red: _hexByColor[Color.red],
+    Value.green: _hexByColor[Color.green],
+    Value.blue: _hexByColor[Color.blue],
+    Value.yellow: _hexByColor[Color.yellow],
+  };
+  static final Map<Color, String> _hexByColor = {
     Color.red: '#f00',
     Color.green: '#0f0',
     Color.blue: '#00f',
     Color.yellow: '#ff0',
   };
-  static final Map<Color, String> _ghostColors = {
+  static final Map<Color, String> _ghostHexByColor = {
     Color.red: '#f88',
     Color.green: '#8f8',
     Color.blue: '#88f',
@@ -78,19 +86,19 @@ class Renderer {
   }
 
   void _drawField(Field field) =>
-      field.cells.where((cell) => cell.isNotEmpty).forEach((cell) => _drawPuyo(
-          cell.columnIndex, cell.rowIndex, _colors[colorByValue[cell.value]]));
+      field.cells.where((cell) => cell.isNotEmpty).forEach((cell) =>
+          _drawPuyo(cell.columnIndex, cell.rowIndex, _hexByValue[cell.value]));
 
   void _drawCurrentPiece(Piece piece, int rowCount) {
     _drawPuyo(piece.columnIndexes[piece.colorProcessingOrder.first], rowCount,
-        _colors[piece.colors[piece.colorProcessingOrder.first]]);
+        _hexByColor[piece.colors[piece.colorProcessingOrder.first]]);
     // draw above the first puyo if they are in the same column
     _drawPuyo(
         piece.columnIndexes[piece.colorProcessingOrder.last],
         piece.columnIndexes.first == piece.columnIndexes.last
             ? rowCount + 1
             : rowCount,
-        _colors[piece.colors[piece.colorProcessingOrder.last]]);
+        _hexByColor[piece.colors[piece.colorProcessingOrder.last]]);
   }
 
   void _drawCurrentPieceGhost(Field field, Piece piece) {
@@ -112,23 +120,25 @@ class Renderer {
         piece.columnIndexes[piece.colorProcessingOrder.first],
         indexOfLowestEmptyRowInColumn(
             field, piece.columnIndexes[piece.colorProcessingOrder.first]),
-        _ghostColors[piece.colors[piece.colorProcessingOrder.first]]);
+        _ghostHexByColor[piece.colors[piece.colorProcessingOrder.first]]);
     // draw above first ghost puyo if they are in the same column
     _drawPuyo(
         piece.columnIndexes[piece.colorProcessingOrder.last],
         indexOfLowestEmptyRowInColumn(
                 field, piece.columnIndexes[piece.colorProcessingOrder.last]) +
             (bothPuyosInSameColumn ? 1 : 0),
-        _ghostColors[piece.colors[piece.colorProcessingOrder.last]]);
+        _ghostHexByColor[piece.colors[piece.colorProcessingOrder.last]]);
   }
 
   void _drawPieceQueue(PieceQueue pieceQueue, int columnCount, int rowCount) {
     // next
-    _drawPuyo(columnCount, rowCount, _colors[pieceQueue.next.first]);
-    _drawPuyo(columnCount, rowCount + 1, _colors[pieceQueue.next.last]);
+    _drawPuyo(columnCount, rowCount, _hexByColor[pieceQueue.next.first]);
+    _drawPuyo(columnCount, rowCount + 1, _hexByColor[pieceQueue.next.last]);
     // next next
-    _drawPuyo(columnCount + 1, rowCount, _colors[pieceQueue.nextNext.first]);
-    _drawPuyo(columnCount + 1, rowCount + 1, _colors[pieceQueue.nextNext.last]);
+    _drawPuyo(
+        columnCount + 1, rowCount, _hexByColor[pieceQueue.nextNext.first]);
+    _drawPuyo(
+        columnCount + 1, rowCount + 1, _hexByColor[pieceQueue.nextNext.last]);
   }
 
   void _drawPuyo(int columnIndex, int rowIndex, String color) => _renderer

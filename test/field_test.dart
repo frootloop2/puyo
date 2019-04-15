@@ -166,15 +166,22 @@ void main() {
       });
     });
 
+    test('drops trash on field', () {
+      final Field field = fieldFromString('EEEE\nEEEE\nEEEE');
+      final Field expectedField = fieldFromString('EEEE\nTTTT\nTTTT');
+
+      expect(dropTrash(field, 8), expectedField);
+    });
+
     group('string format conversion', () {
       test('field string', () {
-        final String string = 'EEEE\nRGBY\nEEEE';
+        final String string = 'EEEE\nRGBY\nETTE';
 
         expect(fieldString(fieldFromString(string)), string);
       });
 
       test('field from string', () {
-        final Field field = fieldFromString('EGEY\nREBE');
+        final Field field = fieldFromString('EGEY\nRTBE');
         final Field expectedField =
             Field((b) => b.cellsByRowByColumn = ListBuilder<BuiltList<Cell>>([
                   BuiltList<Cell>([
@@ -189,7 +196,7 @@ void main() {
                   ]),
                   BuiltList<Cell>([
                     Cell((b) => b
-                      ..value = Value.empty
+                      ..value = Value.trash
                       ..columnIndex = 1
                       ..rowIndex = 0),
                     Cell((b) => b

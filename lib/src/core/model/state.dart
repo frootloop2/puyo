@@ -15,6 +15,8 @@ abstract class State implements Built<State, StateBuilder> {
 
   Piece get currentPiece;
 
+  int get pendingTrash;
+
   State._();
 
   factory State([updates(StateBuilder b)]) = _$State;
@@ -23,7 +25,8 @@ abstract class State implements Built<State, StateBuilder> {
 final State initialState = State((b) => b
   ..pieceQueue = advanceQueue(startingQueue).toBuilder()
   ..field = emptyField.toBuilder()
-  ..currentPiece = newPiece(startingQueue.next).toBuilder());
+  ..currentPiece = newPiece(startingQueue.next).toBuilder()
+  ..pendingTrash = 0);
 
 State moveRight(State state) => state.rebuild((b) => b.currentPiece =
     movePieceRight(state.currentPiece, state.field.columnCount).toBuilder());
@@ -54,6 +57,10 @@ State chains(State state) =>
 State gravity(State state) =>
     state.rebuild((b) => b.field = fall(state.field).toBuilder());
 
+State trash(State state) => state.rebuild((b) => b
+  ..field = dropTrash(state.field, state.pendingTrash).toBuilder()
+  ..pendingTrash = 0);
+
 // should return a list of states?
 State allChains(State state) {
   State nextState = gravity(chains(state));
@@ -67,10 +74,12 @@ State allChains(State state) {
 List<String> stateStrings(State state) => [
       fieldString(state.field),
       pieceString(state.currentPiece),
-      pieceQueueString(state.pieceQueue)
+      pieceQueueString(state.pieceQueue),
+      '${state.pendingTrash}',
     ];
 
 State stateFromStrings(List<String> stateStrings) => State((b) => b
   ..field = fieldFromString(stateStrings[0]).toBuilder()
   ..currentPiece = pieceFromString(stateStrings[1]).toBuilder()
-  ..pieceQueue = pieceQueueFromString(stateStrings[2]).toBuilder());
+  ..pieceQueue = pieceQueueFromString(stateStrings[2]).toBuilder()
+  ..pendingTrash = int.parse(stateStrings[3]));

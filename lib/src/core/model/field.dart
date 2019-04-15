@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -15,6 +17,7 @@ class Value extends EnumClass {
   static const Value green = _$green;
   static const Value blue = _$blue;
   static const Value yellow = _$yellow;
+  static const Value trash = _$trash;
 
   const Value._(String name) : super(name);
 
@@ -29,6 +32,7 @@ const Map<Value, String> characterByValue = {
   Value.green: 'G',
   Value.blue: 'B',
   Value.yellow: 'Y',
+  Value.trash: 'T',
 };
 
 const Map<String, Value> valueByCharacter = {
@@ -37,6 +41,7 @@ const Map<String, Value> valueByCharacter = {
   'G': Value.green,
   'B': Value.blue,
   'Y': Value.yellow,
+  'T': Value.trash,
 };
 
 const Map<Color, Value> valueByColor = {
@@ -139,21 +144,15 @@ Field dropPiece(Field field, final Piece piece) {
           field.rowCount - 1) {
     return field;
   }
-  piece.colorProcessingOrder.forEach((colorIndex) {
-    final Color color = piece.colors[colorIndex];
-    final int columnIndex = piece.columnIndexes[colorIndex];
-    final int rowIndex = dropTarget(field, columnIndex);
-    field = field.rebuild((b) => b.cellsByRowByColumn[columnIndex] =
-        b.cellsByRowByColumn[columnIndex].rebuild((b) => b[rowIndex] =
-            b[rowIndex].rebuild((b) => b.value = valueByColor[color])));
-  });
-  return field;
+  return field.rebuild((b) => piece.colorProcessingOrder.forEach((colorIndex) =>
+      _dropValue(b, piece.columnIndexes[colorIndex],
+          valueByColor[piece.colors[colorIndex]])));
 }
 
 Field removeChains(Field field) {
   final ListBuilder<BuiltList<Cell>> newCells =
       field.cellsByRowByColumn.toBuilder();
-  final BuiltSet<Cell> poppedCells = chainsInField(field);
+  final BuiltSet<Cell> poppedCells = poppedCellsInField(field);
   poppedCells.forEach((poppedCell) => newCells[poppedCell.columnIndex] =
       newCells[poppedCell.columnIndex].rebuild((b) => b[poppedCell.rowIndex] =
           b[poppedCell.rowIndex].rebuild((b) => b.value = Value.empty)));
@@ -189,6 +188,15 @@ Field fall(Field field) {
     }
   }
   return field.rebuild((b) => b.cellsByRowByColumn = newCells);
+}
+
+Field dropTrash(Field field, int trashAmount) {
+  while (trashAmount >= field.columnCount) {
+    field = _dropTrashRow(field);
+    trashAmount -= field.columnCount;
+  }
+  field = _dropTrashPartialRow(field, trashAmount);
+  return field;
 }
 
 // top to bottom, left to right
@@ -231,4 +239,35 @@ Field fieldFromString(String fieldString) {
             ..value = valuesByColumnByRow[rowIndex][columnIndex]
             ..columnIndex = columnIndex
             ..rowIndex = rowIndex))))));
+}
+
+Field _dropTrashRow(Field field) => field.rebuild((b) {
+      for (int columnIndex = 0;
+          columnIndex < field.columnCount;
+          columnIndex++) {
+        if (!isColumnFull(field, columnIndex)) {
+          _dropValue(b, columnIndex, Value.trash);
+        }
+      }
+    });
+
+Field _dropTrashPartialRow(Field field, int trashAmount) => field.rebuild((b) {
+      final List<int> availableColumns =
+          List.generate(field.columnCount, (i) => i)
+              .where((columnIndex) => !isColumnFull(field, columnIndex))
+              .toList();
+
+      for (int i = 0; i < trashAmount; i++) {
+        // TODO: rethink randomness
+        final int columnIndex = availableColumns
+            .removeAt(Random().nextInt(availableColumns.length));
+        _dropValue(b, columnIndex, Value.trash);
+      }
+    });
+
+void _dropValue(FieldBuilder fieldBuilder, int columnIndex, Value value) {
+  final int rowIndex = dropTarget(fieldBuilder.build(), columnIndex);
+  fieldBuilder.cellsByRowByColumn[columnIndex] =
+      fieldBuilder.cellsByRowByColumn[columnIndex].rebuild(
+          (b) => b[rowIndex] = b[rowIndex].rebuild((b) => b.value = value));
 }

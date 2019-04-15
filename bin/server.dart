@@ -106,7 +106,7 @@ Game update(Game game, Input input) {
       newState = rotateCounterclockwise(stateToUpdate);
       break;
     case InputType.drop:
-      newState = allChains(drop(stateToUpdate));
+      newState = trash(allChains(drop(stateToUpdate)));
       break;
   }
 
