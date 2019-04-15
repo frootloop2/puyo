@@ -149,6 +149,8 @@ Field dropPiece(Field field, final Piece piece) {
           valueByColor[piece.colors[colorIndex]])));
 }
 
+//int countGeneratedTrash(Field field) => poppedCellsInField(field).length;
+
 Field removeChains(Field field) {
   final ListBuilder<BuiltList<Cell>> newCells =
       field.cellsByRowByColumn.toBuilder();
@@ -257,11 +259,12 @@ Field _dropTrashPartialRow(Field field, int trashAmount) => field.rebuild((b) {
               .where((columnIndex) => !isColumnFull(field, columnIndex))
               .toList();
 
-      for (int i = 0; i < trashAmount; i++) {
+      while (trashAmount > 0 && availableColumns.isNotEmpty) {
         // TODO: rethink randomness
         final int columnIndex = availableColumns
             .removeAt(Random().nextInt(availableColumns.length));
         _dropValue(b, columnIndex, Value.trash);
+        trashAmount--;
       }
     });
 

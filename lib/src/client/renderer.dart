@@ -52,6 +52,7 @@ class Renderer {
       ..width = _canvasWidth
       ..height = _canvasHeight
       ..style.backgroundColor = '0';
+    _renderer.font = "16px monospace";
   }
 
   State render(State state) {
@@ -62,6 +63,7 @@ class Renderer {
     _drawCurrentPieceGhost(state.field, state.currentPiece);
     _drawPieceQueue(
         state.pieceQueue, state.field.columnCount, state.field.rowCount);
+    _drawPendingTrash(state.pendingTrash);
     return state;
   }
 
@@ -139,6 +141,13 @@ class Renderer {
         columnCount + 1, rowCount, _hexByColor[pieceQueue.nextNext.first]);
     _drawPuyo(
         columnCount + 1, rowCount + 1, _hexByColor[pieceQueue.nextNext.last]);
+  }
+
+  void _drawPendingTrash(int trashAmount) {
+    _renderer
+      ..fillStyle = '#fff'
+      ..fillText('Trash: $trashAmount', _fieldWidth,
+          _canvasHeight - (_fieldHeight - 32));
   }
 
   void _drawPuyo(int columnIndex, int rowIndex, String color) => _renderer

@@ -90,7 +90,8 @@ InputType parseInputType(String inputTypeString) =>
     InputType.values.firstWhere((e) => e.toString() == inputTypeString);
 
 Game update(Game game, Input input) {
-  State stateToUpdate = game.states[input.playerId];
+  final int otherPlayerId = input.playerId == 0 ? 1 : 0;
+  final State stateToUpdate = game.states[input.playerId];
   State newState;
   switch (input.inputType) {
     case InputType.moveLeft:
@@ -109,6 +110,11 @@ Game update(Game game, Input input) {
       newState = trash(allChains(drop(stateToUpdate)));
       break;
   }
+  final int generatedTrash = newState.outgoingTrash;
+  newState = newState.rebuild((b) => b.outgoingTrash = 0);
 
-  return game.rebuild((b) => b.states[input.playerId] = newState);
+  return game.rebuild((b) => b
+    ..states[input.playerId] = newState
+    ..states[otherPlayerId] = game.states[otherPlayerId]
+        .rebuild((b) => b.pendingTrash += generatedTrash));
 }

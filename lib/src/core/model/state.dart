@@ -17,6 +17,8 @@ abstract class State implements Built<State, StateBuilder> {
 
   int get pendingTrash;
 
+  int get outgoingTrash;
+
   State._();
 
   factory State([updates(StateBuilder b)]) = _$State;
@@ -26,7 +28,8 @@ final State initialState = State((b) => b
   ..pieceQueue = advanceQueue(startingQueue).toBuilder()
   ..field = emptyField.toBuilder()
   ..currentPiece = newPiece(startingQueue.next).toBuilder()
-  ..pendingTrash = 0);
+  ..pendingTrash = 0
+  ..outgoingTrash = 0);
 
 State moveRight(State state) => state.rebuild((b) => b.currentPiece =
     movePieceRight(state.currentPiece, state.field.columnCount).toBuilder());
@@ -52,7 +55,8 @@ State drop(State state) =>
           ..pieceQueue = advanceQueue(state.pieceQueue).toBuilder());
 
 State chains(State state) =>
-    state.rebuild((b) => b.field = removeChains(state.field).toBuilder());
+    state.rebuild((b) => b..field = removeChains(state.field).toBuilder());
+//..outgoingTrash += countGeneratedTrash(state.field));
 
 State gravity(State state) =>
     state.rebuild((b) => b.field = fall(state.field).toBuilder());
@@ -63,23 +67,34 @@ State trash(State state) => state.rebuild((b) => b
 
 // should return a list of states?
 State allChains(State state) {
+  int chainCount = 0;
+  int outgoingTrash = 0;
   State nextState = gravity(chains(state));
   while (nextState != state) {
     state = nextState;
+
+    chainCount++;
+    outgoingTrash += chainCount * 4;
     nextState = gravity(chains(state));
   }
-  return nextState;
+  return state.rebuild((b) => b.outgoingTrash = outgoingTrash);
 }
+
+bool isAlive(State state) =>
+    state.field.cellsByRowByColumn[2][state.field.rowCount - 1].value ==
+    Value.empty;
 
 List<String> stateStrings(State state) => [
       fieldString(state.field),
       pieceString(state.currentPiece),
       pieceQueueString(state.pieceQueue),
       '${state.pendingTrash}',
+      '${state.outgoingTrash}',
     ];
 
 State stateFromStrings(List<String> stateStrings) => State((b) => b
   ..field = fieldFromString(stateStrings[0]).toBuilder()
   ..currentPiece = pieceFromString(stateStrings[1]).toBuilder()
   ..pieceQueue = pieceQueueFromString(stateStrings[2]).toBuilder()
-  ..pendingTrash = int.parse(stateStrings[3]));
+  ..pendingTrash = int.parse(stateStrings[3])
+  ..outgoingTrash = int.parse(stateStrings[4]));
