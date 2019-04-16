@@ -15,12 +15,16 @@ final Map<int, WebSocketChannel> playerConnectionsByPlayerId = {};
 final Set<WebSocketChannel> spectatorConnections = {};
 final StreamController<Input> inputStreamController = StreamController();
 
+// playerId can't be null but it's just a placeholder for now
 Game game = Game((b) => b
   ..states.addAll([initialState, initialState])
   ..playerId = -1);
 
 main() async {
   inputStreamController.stream.listen((input) {
+    if (game.states.any(isLost)) {
+      return;
+    }
     game = update(game, input);
     pushGame(
         game,
@@ -68,8 +72,9 @@ void registerPlayer(WebSocketChannel webSocket) {
 
 void registerSpectator(WebSocketChannel webSocket) {
   spectatorConnections.add(webSocket);
-  webSocket.stream.listen((message) {},
-      onDone: () => spectatorConnections.remove(webSocket));
+  // inputs from spectators are ignored
+  webSocket.stream
+      .listen(null, onDone: () => spectatorConnections.remove(webSocket));
 }
 
 void pushGame(Game gameWithoutPlayerId, Iterable<WebSocketChannel> webSockets) {

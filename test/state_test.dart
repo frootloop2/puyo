@@ -5,6 +5,22 @@ import 'package:puyo/src/core/model/state.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('queries', () {
+    test('is not lost', () {
+      final State state =
+          stateFromStrings(['RRERRR\nGGGBBB', 'RG0R', 'GGBB', '0', '0']);
+
+      expect(isLost(state), isFalse);
+    });
+
+    test('is lost', () {
+      final State state =
+          stateFromStrings(['EEREEE\nEEREEE', 'RG0R', 'GGBB', '0', '0']);
+
+      expect(isLost(state), isTrue);
+    });
+  });
+
   group('player actions', () {
     test('move right', () {
       final State state =
@@ -83,7 +99,7 @@ void main() {
           stateFromStrings(['RRBG\nGGBE\nGGRR', 'RG0R', 'GGBB', '3', '0']);
       // greens pop then reds pop, leaving blues and extra green left over.
       final State expectedState =
-          stateFromStrings(['EEEE\nEEBE\nEEBG', 'RG0R', 'GGBB', '3', '0']);
+          stateFromStrings(['EEEE\nEEBE\nEEBG', 'RG0R', 'GGBB', '3', '12']);
 
       expect(allChains(state), expectedState);
     });

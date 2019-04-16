@@ -80,9 +80,8 @@ State allChains(State state) {
   return state.rebuild((b) => b.outgoingTrash = outgoingTrash);
 }
 
-bool isAlive(State state) =>
-    state.field.cellsByRowByColumn[2][state.field.rowCount - 1].value ==
-    Value.empty;
+bool isLost(State state) =>
+    isColumnFull(state.field, ((state.field.columnCount - 1) / 2).floor());
 
 List<String> stateStrings(State state) => [
       fieldString(state.field),
