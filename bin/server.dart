@@ -112,7 +112,7 @@ Game update(Game game, Input input) {
       newState = rotateCounterclockwise(stateToUpdate);
       break;
     case InputType.drop:
-      newState = trash(allChains(drop(stateToUpdate)));
+      newState = dropOnce(stateToUpdate);
       break;
   }
   final int generatedTrash = newState.outgoingTrash;

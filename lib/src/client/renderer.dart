@@ -59,8 +59,8 @@ class Renderer {
     _clearCanvas();
     _drawLines(state);
     _drawField(state.field);
-    _drawCurrentPiece(state.currentPiece, state.field.rowCount);
     _drawCurrentPieceGhost(state.field, state.currentPiece);
+    _drawCurrentPiece(state.currentPiece);
     _drawPieceQueue(
         state.pieceQueue, state.field.columnCount, state.field.rowCount);
     _drawPendingTrash(state.pendingTrash);
@@ -91,15 +91,14 @@ class Renderer {
       field.cells.where((cell) => cell.isNotEmpty).forEach((cell) =>
           _drawPuyo(cell.columnIndex, cell.rowIndex, _hexByValue[cell.value]));
 
-  void _drawCurrentPiece(Piece piece, int rowCount) {
-    _drawPuyo(piece.columnIndexes[piece.colorProcessingOrder.first], rowCount,
+  void _drawCurrentPiece(Piece piece) {
+    _drawPuyo(
+        piece.columnIndexes[piece.colorProcessingOrder.first],
+        piece.rowIndexes[piece.colorProcessingOrder.first],
         _hexByColor[piece.colors[piece.colorProcessingOrder.first]]);
-    // draw above the first puyo if they are in the same column
     _drawPuyo(
         piece.columnIndexes[piece.colorProcessingOrder.last],
-        piece.columnIndexes.first == piece.columnIndexes.last
-            ? rowCount + 1
-            : rowCount,
+        piece.rowIndexes[piece.colorProcessingOrder.last],
         _hexByColor[piece.colors[piece.colorProcessingOrder.last]]);
   }
 
@@ -134,13 +133,13 @@ class Renderer {
 
   void _drawPieceQueue(PieceQueue pieceQueue, int columnCount, int rowCount) {
     // next
-    _drawPuyo(columnCount, rowCount, _hexByColor[pieceQueue.next.first]);
-    _drawPuyo(columnCount, rowCount + 1, _hexByColor[pieceQueue.next.last]);
+    _drawPuyo(columnCount, rowCount - 2, _hexByColor[pieceQueue.next.first]);
+    _drawPuyo(columnCount, rowCount - 1, _hexByColor[pieceQueue.next.last]);
     // next next
     _drawPuyo(
-        columnCount + 1, rowCount, _hexByColor[pieceQueue.nextNext.first]);
+        columnCount + 1, rowCount - 2, _hexByColor[pieceQueue.nextNext.first]);
     _drawPuyo(
-        columnCount + 1, rowCount + 1, _hexByColor[pieceQueue.nextNext.last]);
+        columnCount + 1, rowCount - 1, _hexByColor[pieceQueue.nextNext.last]);
   }
 
   void _drawPendingTrash(int trashAmount) {

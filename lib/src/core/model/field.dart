@@ -98,7 +98,14 @@ int indexOfLowestEmptyRowInColumn(Field field, int columnIndex) =>
     field.cellsByRowByColumn[columnIndex].indexWhere((cell) => cell.isEmpty);
 
 bool isColumnFull(Field field, int columnIndex) =>
-    indexOfLowestEmptyRowInColumn(field, columnIndex) == -1;
+    (indexOfLowestEmptyRowInColumn(field, columnIndex) == -1) ||
+    (indexOfLowestEmptyRowInColumn(field, columnIndex) >= field.rowCount - 2);
+
+bool isCellEmpty(Field field, int columnIndex, int rowIndex) =>
+    !isCellFilled(field, columnIndex, rowIndex);
+
+bool isCellFilled(Field field, int columnIndex, int rowIndex) =>
+    field.cellsByRowByColumn[columnIndex][rowIndex].value != Value.empty;
 
 int dropTarget(Field field, int columnIndex) => isColumnFull(field, columnIndex)
     ? -1
@@ -127,7 +134,7 @@ final Field emptyField =
     Field((b) => b.cellsByRowByColumn = ListBuilder(List.generate(
         6,
         (columnIndex) => BuiltList<Cell>(List<Cell>.generate(
-            12,
+            14,
             (rowIndex) => Cell((b) => b
               ..value = Value.empty
               ..columnIndex = columnIndex
@@ -165,7 +172,7 @@ Field fall(Field field) {
   final ListBuilder<BuiltList<Cell>> newCells =
       field.cellsByRowByColumn.toBuilder();
   for (int columnIndex = 0; columnIndex < field.columnCount; columnIndex++) {
-    if (isColumnFull(field, columnIndex)) {
+    if (indexOfLowestEmptyRowInColumn(field, columnIndex) == -1) {
       continue;
     }
     int lowestEmptyRowInColumn =

@@ -1,5 +1,4 @@
 import 'package:built_collection/built_collection.dart';
-import 'package:puyo/src/core/model/color.dart';
 import 'package:puyo/src/core/model/direction.dart';
 import 'package:puyo/src/core/model/field.dart';
 import 'package:puyo/src/core/model/piece.dart';
@@ -95,27 +94,24 @@ void main() {
 
     group('actions', () {
       group('drop', () {
-        final Piece leftRedBluePiece = Piece((b) => b
-          ..corePuyoColor = Color.red
-          ..secondaryPuyoColor = Color.blue
-          ..corePuyoColumnIndex = 0
-          ..orientation = Direction.right);
+        final Piece rightRedBluePiece = pieceFromString('R,B,0,2,R');
 
         test('adds puyos to columns', () {
-          final Field field = fieldFromString('EE\nGE\nGG');
-          final Field expectedField = fieldFromString('RE\nGB\nGG');
+          final Field field = fieldFromString('EE\nEE\nEE\nGE\nGG');
+          final Field expectedField = fieldFromString('EE\nEE\nRE\nGB\nGG');
 
-          expect(dropPiece(field, leftRedBluePiece), expectedField);
+          expect(dropPiece(field, rightRedBluePiece), expectedField);
         });
 
         test('drops puyos in processing order', () {
-          final Field field = fieldFromString('E\nE');
+          final Field field = fieldFromString('E\nE\nE\nE');
           final Piece downRedBluePiece =
-              leftRedBluePiece.rebuild((b) => b.orientation = Direction.down);
-          final Field expectedFieldWithDownPiece = fieldFromString('R\nB');
+              rightRedBluePiece.rebuild((b) => b.orientation = Direction.down);
+          final Field expectedFieldWithDownPiece =
+              fieldFromString('E\nE\nR\nB');
           final Piece upRedBluePiece =
-              leftRedBluePiece.rebuild((b) => b.orientation = Direction.up);
-          final Field expectedFieldWithUpPiece = fieldFromString('B\nR');
+              rightRedBluePiece.rebuild((b) => b.orientation = Direction.up);
+          final Field expectedFieldWithUpPiece = fieldFromString('E\nE\nB\nR');
 
           expect(
               dropPiece(field, downRedBluePiece), expectedFieldWithDownPiece);
@@ -125,20 +121,20 @@ void main() {
         test('does not add piece when column is full', () {
           final Field field = fieldFromString('GE\nGE');
 
-          expect(dropPiece(field, leftRedBluePiece), field);
+          expect(dropPiece(field, rightRedBluePiece), field);
         });
 
         test('adds piece if one puyo is in single-empty column', () {
-          final Field field = fieldFromString('EE\nGG');
-          final Field expectedField = fieldFromString('RB\nGG');
+          final Field field = fieldFromString('EE\nEE\nEE\nGG');
+          final Field expectedField = fieldFromString('EE\nEE\nRB\nGG');
 
-          expect(dropPiece(field, leftRedBluePiece), expectedField);
+          expect(dropPiece(field, rightRedBluePiece), expectedField);
         });
 
         test('does not add piece if both are in single-empty column', () {
           final Field field = fieldFromString('E\nG');
           final Piece upPieceOverSingleEmptyColumn =
-              leftRedBluePiece.rebuild((b) => b..orientation = Direction.up);
+              rightRedBluePiece.rebuild((b) => b..orientation = Direction.up);
 
           expect(dropPiece(field, upPieceOverSingleEmptyColumn), field);
         });
@@ -167,8 +163,9 @@ void main() {
     });
 
     test('drops trash on field', () {
-      final Field field = fieldFromString('EEEE\nEEEE\nEEEE');
-      final Field expectedField = fieldFromString('EEEE\nTTTT\nTTTT');
+      final Field field = fieldFromString('EEEE\nEEEE\nEEEE\nEEEE\nEEEE');
+      final Field expectedField =
+          fieldFromString('EEEE\nEEEE\nEEEE\nTTTT\nTTTT');
 
       expect(dropTrash(field, 8), expectedField);
     });

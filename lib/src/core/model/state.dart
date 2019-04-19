@@ -31,20 +31,88 @@ final State initialState = State((b) => b
   ..pendingTrash = 0
   ..outgoingTrash = 0);
 
-State moveRight(State state) => state.rebuild((b) => b.currentPiece =
-    movePieceRight(state.currentPiece, state.field.columnCount).toBuilder());
-
-State moveLeft(State state) => state.rebuild(
-    (b) => b.currentPiece = movePieceLeft(state.currentPiece).toBuilder());
-
-State rotateClockwise(State state) => state.rebuild((b) => b.currentPiece =
-    rotatePieceClockwise(state.currentPiece, state.field.columnCount)
-        .toBuilder());
-
-State rotateCounterclockwise(State state) =>
-    state.rebuild((b) => b.currentPiece =
-        rotatePieceCounterclockwise(state.currentPiece, state.field.columnCount)
+State moveRight(State state) {
+  final bool corePuyoCanMoveRight =
+      (state.currentPiece.corePuyoColumnIndex < state.field.columnCount - 1) &&
+          isCellEmpty(state.field, state.currentPiece.corePuyoColumnIndex + 1,
+              state.currentPiece.corePuyoRowIndex);
+  final bool secondaryPuyoCanMoveRight =
+      (state.currentPiece.secondaryPuyoColumnIndex <
+              state.field.columnCount - 1) &&
+          isCellEmpty(
+              state.field,
+              state.currentPiece.secondaryPuyoColumnIndex + 1,
+              state.currentPiece.secondaryPuyoRowIndex);
+  if (corePuyoCanMoveRight && secondaryPuyoCanMoveRight) {
+    return state.rebuild((b) => b.currentPiece =
+        movePieceRight(state.currentPiece, state.field.columnCount)
             .toBuilder());
+  } else {
+    return state;
+  }
+}
+
+State moveLeft(State state) {
+  final bool corePuyoCanMoveLeft =
+      (state.currentPiece.corePuyoColumnIndex > 0) &&
+          isCellEmpty(state.field, state.currentPiece.corePuyoColumnIndex - 1,
+              state.currentPiece.corePuyoRowIndex);
+  final bool secondaryPuyoCanMoveLeft =
+      (state.currentPiece.secondaryPuyoColumnIndex > 0) &&
+          isCellEmpty(
+              state.field,
+              state.currentPiece.secondaryPuyoColumnIndex - 1,
+              state.currentPiece.secondaryPuyoRowIndex);
+  if (corePuyoCanMoveLeft && secondaryPuyoCanMoveLeft) {
+    return state.rebuild(
+        (b) => b.currentPiece = movePieceLeft(state.currentPiece).toBuilder());
+  } else {
+    return state;
+  }
+}
+
+State rotateClockwise(State state) => state.rebuild((b) {
+      Piece piece =
+          rotatePieceClockwise(state.currentPiece, state.field.columnCount);
+      bool pieceFits = isCellEmpty(
+              state.field, piece.corePuyoColumnIndex, piece.corePuyoRowIndex) &&
+          isCellEmpty(state.field, piece.secondaryPuyoColumnIndex,
+              piece.secondaryPuyoRowIndex);
+      if (pieceFits) {
+        b.currentPiece = piece.toBuilder();
+      } else {
+        // kicks
+      }
+    });
+
+State rotateCounterclockwise(State state) => state.rebuild((b) {
+      Piece piece = rotatePieceCounterclockwise(
+          state.currentPiece, state.field.columnCount);
+      bool pieceFits = isCellEmpty(
+              state.field, piece.corePuyoColumnIndex, piece.corePuyoRowIndex) &&
+          isCellEmpty(state.field, piece.secondaryPuyoColumnIndex,
+              piece.secondaryPuyoRowIndex);
+      if (pieceFits) {
+        b.currentPiece = piece.toBuilder();
+      } else {
+        // kicks
+      }
+    });
+
+State dropOnce(State state) {
+  final bool corePuyoCanMoveDown = (state.currentPiece.corePuyoRowIndex > 0) &&
+      isCellEmpty(state.field, state.currentPiece.corePuyoColumnIndex,
+          state.currentPiece.corePuyoRowIndex - 1);
+  final bool secondaryPuyoCanMoveDown =
+      (state.currentPiece.secondaryPuyoRowIndex > 0) &&
+          isCellEmpty(state.field, state.currentPiece.secondaryPuyoColumnIndex,
+              state.currentPiece.secondaryPuyoRowIndex - 1);
+  if (corePuyoCanMoveDown && secondaryPuyoCanMoveDown) {
+    return state.rebuild((b) => b.currentPiece.corePuyoRowIndex--);
+  } else {
+    return trash(allChains(drop(state)));
+  }
+}
 
 State drop(State state) =>
     dropPiece(state.field, state.currentPiece) == state.field

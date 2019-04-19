@@ -20,12 +20,17 @@ abstract class Piece implements Built<Piece, PieceBuilder> {
 
   int get corePuyoColumnIndex;
 
+  int get corePuyoRowIndex;
+
   Direction get orientation;
 
   BuiltList<Color> get colors => BuiltList([corePuyoColor, secondaryPuyoColor]);
 
   BuiltList<int> get columnIndexes =>
       BuiltList([corePuyoColumnIndex, secondaryPuyoColumnIndex]);
+
+  BuiltList<int> get rowIndexes =>
+      BuiltList([corePuyoRowIndex, secondaryPuyoRowIndex]);
 
   int get secondaryPuyoColumnIndex {
     switch (orientation) {
@@ -36,6 +41,20 @@ abstract class Piece implements Built<Piece, PieceBuilder> {
         return corePuyoColumnIndex + 1;
       case Direction.left:
         return corePuyoColumnIndex - 1;
+      default:
+        return 0; // impossible
+    }
+  }
+
+  int get secondaryPuyoRowIndex {
+    switch (orientation) {
+      case Direction.up:
+        return corePuyoRowIndex + 1;
+      case Direction.right:
+      case Direction.left:
+        return corePuyoRowIndex;
+      case Direction.down:
+        return corePuyoRowIndex - 1;
       default:
         return 0; // impossible
     }
@@ -95,15 +114,21 @@ Piece newPiece(BuiltList<Color> colors) => Piece((b) => b
   ..corePuyoColor = colors.first
   ..secondaryPuyoColor = colors.last
   ..corePuyoColumnIndex = 2
+  ..corePuyoRowIndex = 12
   ..orientation = Direction.up);
 
-String pieceString(Piece piece) => '${characterByColor[piece.corePuyoColor]}'
-    '${characterByColor[piece.secondaryPuyoColor]}'
-    '${piece.corePuyoColumnIndex}'
+String pieceString(Piece piece) => '${characterByColor[piece.corePuyoColor]},'
+    '${characterByColor[piece.secondaryPuyoColor]},'
+    '${piece.corePuyoColumnIndex},'
+    '${piece.corePuyoRowIndex},'
     '${characterByDirection[piece.orientation]}';
 
-Piece pieceFromString(String pieceString) => Piece((b) => b
-  ..corePuyoColor = colorByCharacter[pieceString.substring(0, 1)]
-  ..secondaryPuyoColor = colorByCharacter[pieceString.substring(1, 2)]
-  ..corePuyoColumnIndex = int.parse(pieceString.substring(2, 3))
-  ..orientation = directionByCharacter[pieceString.substring(3, 4)]);
+Piece pieceFromString(String pieceString) {
+  List<String> pieceStringParts = pieceString.split(',');
+  return Piece((b) => b
+    ..corePuyoColor = colorByCharacter[pieceStringParts[0]]
+    ..secondaryPuyoColor = colorByCharacter[pieceStringParts[1]]
+    ..corePuyoColumnIndex = int.parse(pieceStringParts[2])
+    ..corePuyoRowIndex = int.parse(pieceStringParts[3])
+    ..orientation = directionByCharacter[pieceStringParts[4]]);
+}
